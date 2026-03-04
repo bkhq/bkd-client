@@ -2,6 +2,20 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { ServerForm } from '@/components/ServerForm';
 
+jest.mock('@/context/ThemeContext', () => ({
+  useTheme: () => ({
+    mode: 'dark',
+    isDark: true,
+    colors: {
+      background: '#1a1a2e', surface: '#2a2a3e', text: '#ffffff',
+      textSecondary: '#888888', border: '#3b3b5c', primary: '#3b82f6',
+      toolbarBg: '#1a1a2e', toolbarText: '#ffffff', toolbarBorder: '#3b3b5c',
+      pillBg: '#2a2a3e', statusBarStyle: 'light',
+    },
+    setMode: jest.fn(),
+  }),
+}));
+
 describe('ServerForm', () => {
   const defaultProps = {
     visible: true,

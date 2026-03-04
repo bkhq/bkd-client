@@ -1,50 +1,37 @@
-import { openDatabaseSync, type SQLiteDatabase } from 'expo-sqlite';
-import { v4 as uuidv4 } from 'uuid';
+import type { SQLiteDatabase } from 'expo-sqlite';
 import type { Server } from '@/types/server';
 
-let _db: SQLiteDatabase | null = null;
-
-function getDb(): SQLiteDatabase {
-  if (!_db) {
-    _db = openDatabaseSync('bitk.db');
-  }
-  return _db;
+function generateId(): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const segments = [8, 4, 4, 4, 12];
+  return segments
+    .map((len) =>
+      Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+    )
+    .join('-');
 }
 
-export function initDatabase(): void {
-  getDb().execSync(`
-    CREATE TABLE IF NOT EXISTS servers (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      url TEXT NOT NULL,
-      createdAt INTEGER NOT NULL
-    );
-  `);
+export async function getServers(db: SQLiteDatabase): Promise<Server[]> {
+  return db.getAllAsync<Server>('SELECT * FROM servers ORDER BY createdAt DESC');
 }
 
-export function getServers(): Server[] {
-  return getDb().getAllSync<Server>('SELECT * FROM servers ORDER BY createdAt DESC');
-}
-
-export function addServer(url: string, name?: string): Server {
-  const db = getDb();
-  const id = uuidv4();
+export async function addServer(db: SQLiteDatabase, url: string, name?: string): Promise<Server> {
+  const id = generateId();
   const createdAt = Date.now();
   const serverName = name ?? url;
 
-  db.runSync(
+  await db.runAsync(
     'INSERT INTO servers (id, name, url, createdAt) VALUES (?, ?, ?, ?)',
     [id, serverName, url, createdAt]
   );
 
-  return db.getFirstSync<Server>(
+  return (await db.getFirstAsync<Server>(
     'SELECT * FROM servers WHERE id = ?',
     [id]
-  )!;
+  ))!;
 }
 
-export function updateServer(id: string, updates: Partial<Pick<Server, 'name' | 'url'>>): Server {
-  const db = getDb();
+export async function updateServer(db: SQLiteDatabase, id: string, updates: Partial<Pick<Server, 'name' | 'url'>>): Promise<Server> {
   const fields: string[] = [];
   const values: (string | number)[] = [];
 
@@ -62,17 +49,17 @@ export function updateServer(id: string, updates: Partial<Pick<Server, 'name' | 
   }
 
   values.push(id);
-  db.runSync(
+  await db.runAsync(
     `UPDATE servers SET ${fields.join(', ')} WHERE id = ?`,
     values
   );
 
-  return db.getFirstSync<Server>(
+  return (await db.getFirstAsync<Server>(
     'SELECT * FROM servers WHERE id = ?',
     [id]
-  )!;
+  ))!;
 }
 
-export function removeServer(id: string): void {
-  getDb().runSync('DELETE FROM servers WHERE id = ?', [id]);
+export async function removeServer(db: SQLiteDatabase, id: string): Promise<void> {
+  await db.runAsync('DELETE FROM servers WHERE id = ?', [id]);
 }

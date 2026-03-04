@@ -3,6 +3,20 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { ServerList } from '@/components/ServerList';
 import type { Server } from '@/types/server';
 
+jest.mock('@/context/ThemeContext', () => ({
+  useTheme: () => ({
+    mode: 'dark',
+    isDark: true,
+    colors: {
+      background: '#1a1a2e', surface: '#2a2a3e', text: '#ffffff',
+      textSecondary: '#888888', border: '#3b3b5c', primary: '#3b82f6',
+      toolbarBg: '#1a1a2e', toolbarText: '#ffffff', toolbarBorder: '#3b3b5c',
+      pillBg: '#2a2a3e', statusBarStyle: 'light',
+    },
+    setMode: jest.fn(),
+  }),
+}));
+
 const mockServers: Server[] = [
   { id: '1', name: 'Server Alpha', url: 'https://alpha.example.com', createdAt: 2000 },
   { id: '2', name: 'Server Beta', url: 'https://beta.example.com', createdAt: 1000 },

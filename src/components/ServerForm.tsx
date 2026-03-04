@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ServerFormProps {
   visible: boolean;
@@ -25,12 +26,24 @@ export function ServerForm({
   initialUrl = '',
   initialName = '',
 }: ServerFormProps) {
-  const [url, setUrl] = useState(initialUrl);
+  const { colors } = useTheme();
+  const [url, setUrl] = useState(initialUrl || 'https://');
   const [name, setName] = useState(initialName);
 
+  useEffect(() => {
+    if (visible) {
+      setUrl(initialUrl || 'https://');
+      setName(initialName);
+    }
+  }, [visible, initialUrl, initialName]);
+
   const handleSubmit = () => {
-    onSubmit(url.trim(), name.trim());
-    setUrl('');
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl || trimmedUrl === 'https://' || trimmedUrl === 'http://') {
+      return;
+    }
+    onSubmit(trimmedUrl, name.trim());
+    setUrl('https://');
     setName('');
   };
 
@@ -40,15 +53,15 @@ export function ServerForm({
         style={styles.overlay}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.container}>
-          <Text style={styles.title}>
+        <View style={[styles.container, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.title, { color: colors.text }]}>
             {initialUrl ? '编辑服务器' : '添加服务器'}
           </Text>
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
             placeholder="https://"
-            placeholderTextColor="#666"
+            placeholderTextColor={colors.textSecondary}
             value={url}
             onChangeText={setUrl}
             autoCapitalize="none"
@@ -57,9 +70,9 @@ export function ServerForm({
           />
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
             placeholder="名称（可选）"
-            placeholderTextColor="#666"
+            placeholderTextColor={colors.textSecondary}
             value={name}
             onChangeText={setName}
           />
@@ -67,15 +80,15 @@ export function ServerForm({
           <View style={styles.actions}>
             <TouchableOpacity
               testID="cancel-button"
-              style={styles.cancelButton}
+              style={[styles.cancelButton, { borderColor: colors.border }]}
               onPress={onCancel}
             >
-              <Text style={styles.cancelText}>取消</Text>
+              <Text style={[styles.cancelText, { color: colors.textSecondary }]}>取消</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               testID="submit-button"
-              style={styles.submitButton}
+              style={[styles.submitButton, { backgroundColor: colors.primary }]}
               onPress={handleSubmit}
             >
               <Text style={styles.submitText}>确定</Text>

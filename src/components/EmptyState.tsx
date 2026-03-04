@@ -1,17 +1,20 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
 
 interface EmptyStateProps {
   onAddServer: () => void;
 }
 
 export function EmptyState({ onAddServer }: EmptyStateProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>BitK</Text>
-      <Text style={styles.subtitle}>尚未添加服务器</Text>
+      <Text style={[styles.title, { color: colors.text }]}>BitK</Text>
+      <Text style={[styles.subtitle, { color: colors.textSecondary }]}>尚未添加服务器</Text>
       <TouchableOpacity
         testID="add-server-button"
-        style={styles.button}
+        style={[styles.button, { backgroundColor: colors.primary }]}
         onPress={onAddServer}
       >
         <Text style={styles.buttonText}>+ 添加服务器</Text>

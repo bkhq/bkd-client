@@ -35,7 +35,8 @@
             "imageWidth": 76
           }
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
@@ -44,6 +45,12 @@
       "eas": {
         "projectId": "5a903f10-5f45-481d-ac8d-29b1cff59222"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/5a903f10-5f45-481d-ac8d-29b1cff59222"
     }
   }
 }

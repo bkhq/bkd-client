@@ -1,7 +1,11 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useServers } from '@/hooks/useServers';
 import * as database from '@/utils/database';
 import type { Server } from '@/types/server';
+
+jest.mock('expo-sqlite', () => ({
+  useSQLiteContext: jest.fn(() => ({})),
+}));
 
 jest.mock('@/utils/database');
 
@@ -14,102 +18,122 @@ const mockServers: Server[] = [
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockDatabase.getServers.mockReturnValue([]);
+  mockDatabase.getServers.mockResolvedValue([]);
 });
 
 describe('useServers', () => {
-  it('initializes database and loads servers on mount', () => {
-    mockDatabase.getServers.mockReturnValue(mockServers);
+  it('loads servers on mount', async () => {
+    mockDatabase.getServers.mockResolvedValue(mockServers);
 
     const { result } = renderHook(() => useServers());
 
-    expect(mockDatabase.initDatabase).toHaveBeenCalled();
-    expect(result.current.servers).toEqual(mockServers);
+    await waitFor(() => {
+      expect(result.current.servers).toEqual(mockServers);
+    });
   });
 
-  it('starts with loading false after init', () => {
+  it('starts with loading true then becomes false', async () => {
     const { result } = renderHook(() => useServers());
 
-    expect(result.current.loading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
   });
 
-  it('addServer adds a server and refreshes list', () => {
+  it('addServer adds a server and refreshes list', async () => {
     const newServer: Server = {
       id: '3',
       name: 'https://new.com',
       url: 'https://new.com',
       createdAt: 3000,
     };
-    mockDatabase.addServer.mockReturnValue(newServer);
-    mockDatabase.getServers
-      .mockReturnValueOnce([])
-      .mockReturnValueOnce([newServer]);
+    mockDatabase.addServer.mockResolvedValue(newServer);
+    mockDatabase.getServers.mockResolvedValue([]);
 
     const { result } = renderHook(() => useServers());
 
-    act(() => {
-      result.current.addServer('https://new.com');
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
     });
 
-    expect(mockDatabase.addServer).toHaveBeenCalledWith('https://new.com', undefined);
+    mockDatabase.getServers.mockResolvedValue([newServer]);
+
+    await act(async () => {
+      await result.current.addServer('https://new.com');
+    });
+
+    expect(mockDatabase.addServer).toHaveBeenCalledWith(expect.anything(), 'https://new.com', undefined);
     expect(result.current.servers).toEqual([newServer]);
   });
 
-  it('addServer accepts optional name', () => {
+  it('addServer accepts optional name', async () => {
     const newServer: Server = {
       id: '3',
       name: 'My Server',
       url: 'https://new.com',
       createdAt: 3000,
     };
-    mockDatabase.addServer.mockReturnValue(newServer);
+    mockDatabase.addServer.mockResolvedValue(newServer);
     mockDatabase.getServers
-      .mockReturnValueOnce([])
-      .mockReturnValueOnce([newServer]);
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([newServer]);
 
     const { result } = renderHook(() => useServers());
 
-    act(() => {
-      result.current.addServer('https://new.com', 'My Server');
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
     });
 
-    expect(mockDatabase.addServer).toHaveBeenCalledWith('https://new.com', 'My Server');
+    await act(async () => {
+      await result.current.addServer('https://new.com', 'My Server');
+    });
+
+    expect(mockDatabase.addServer).toHaveBeenCalledWith(expect.anything(), 'https://new.com', 'My Server');
   });
 
-  it('updateServer updates and refreshes list', () => {
+  it('updateServer updates and refreshes list', async () => {
     const updated: Server = {
       id: '1',
       name: 'Updated',
       url: 'https://s1.example.com',
       createdAt: 2000,
     };
-    mockDatabase.updateServer.mockReturnValue(updated);
-    mockDatabase.getServers
-      .mockReturnValueOnce(mockServers)
-      .mockReturnValueOnce([updated, mockServers[1]]);
+    mockDatabase.updateServer.mockResolvedValue(updated);
+    mockDatabase.getServers.mockResolvedValue(mockServers);
 
     const { result } = renderHook(() => useServers());
 
-    act(() => {
-      result.current.updateServer('1', { name: 'Updated' });
+    await waitFor(() => {
+      expect(result.current.servers).toEqual(mockServers);
     });
 
-    expect(mockDatabase.updateServer).toHaveBeenCalledWith('1', { name: 'Updated' });
+    mockDatabase.getServers.mockResolvedValue([updated, mockServers[1]]);
+
+    await act(async () => {
+      await result.current.updateServer('1', { name: 'Updated' });
+    });
+
+    expect(mockDatabase.updateServer).toHaveBeenCalledWith(expect.anything(), '1', { name: 'Updated' });
     expect(result.current.servers[0].name).toBe('Updated');
   });
 
-  it('removeServer removes and refreshes list', () => {
-    mockDatabase.getServers
-      .mockReturnValueOnce(mockServers)
-      .mockReturnValueOnce([mockServers[1]]);
+  it('removeServer removes and refreshes list', async () => {
+    mockDatabase.removeServer.mockResolvedValue(undefined);
+    mockDatabase.getServers.mockResolvedValue(mockServers);
 
     const { result } = renderHook(() => useServers());
 
-    act(() => {
-      result.current.removeServer('1');
+    await waitFor(() => {
+      expect(result.current.servers).toEqual(mockServers);
     });
 
-    expect(mockDatabase.removeServer).toHaveBeenCalledWith('1');
+    mockDatabase.getServers.mockResolvedValue([mockServers[1]]);
+
+    await act(async () => {
+      await result.current.removeServer('1');
+    });
+
+    expect(mockDatabase.removeServer).toHaveBeenCalledWith(expect.anything(), '1');
     expect(result.current.servers).toEqual([mockServers[1]]);
   });
 });

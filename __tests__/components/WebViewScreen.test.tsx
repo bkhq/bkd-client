@@ -21,10 +21,38 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
+// Mock expo-web-browser
+jest.mock('expo-web-browser', () => ({
+  openAuthSessionAsync: jest.fn().mockResolvedValue({ type: 'success' }),
+}));
+
+// Mock ThemeContext
+jest.mock('@/context/ThemeContext', () => ({
+  useTheme: () => ({
+    mode: 'dark',
+    isDark: true,
+    colors: {
+      background: '#1a1a2e',
+      surface: '#2a2a3e',
+      text: '#ffffff',
+      textSecondary: '#888888',
+      border: '#3b3b5c',
+      primary: '#3b82f6',
+      toolbarBg: '#1a1a2e',
+      toolbarText: '#ffffff',
+      toolbarBorder: '#3b3b5c',
+      pillBg: '#2a2a3e',
+      statusBarStyle: 'light',
+    },
+    setMode: jest.fn(),
+  }),
+}));
+
 describe('WebViewScreen', () => {
   const defaultProps = {
     url: 'https://ai.fr.ds.cc',
-    onMenuPress: jest.fn(),
+    onHomePress: jest.fn(),
+    onMorePress: jest.fn(),
   };
 
   beforeEach(() => {
@@ -50,12 +78,20 @@ describe('WebViewScreen', () => {
     expect(getByTestId('menu-button')).toBeTruthy();
   });
 
-  it('calls onMenuPress when menu button is pressed', () => {
+  it('calls onMorePress when menu button is pressed', () => {
     const { getByTestId } = render(<WebViewScreen {...defaultProps} />);
 
     fireEvent.press(getByTestId('menu-button'));
 
-    expect(defaultProps.onMenuPress).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onMorePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onHomePress when home button is pressed', () => {
+    const { getByTestId } = render(<WebViewScreen {...defaultProps} />);
+
+    fireEvent.press(getByTestId('home-button'));
+
+    expect(defaultProps.onHomePress).toHaveBeenCalledTimes(1);
   });
 
   it('shows error state with retry button on load failure', () => {
