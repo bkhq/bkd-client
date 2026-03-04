@@ -33,17 +33,18 @@ describe('ServerForm', () => {
     expect(getByPlaceholderText('https://')).toBeTruthy();
   });
 
-  it('renders name input field', () => {
-    const { getByPlaceholderText } = render(<ServerForm {...defaultProps} />);
+  it('renders name input field with label', () => {
+    const { getByPlaceholderText, getByText } = render(<ServerForm {...defaultProps} />);
 
-    expect(getByPlaceholderText(/名称/)).toBeTruthy();
+    expect(getByText('名称（可选）')).toBeTruthy();
+    expect(getByPlaceholderText('我的服务器')).toBeTruthy();
   });
 
   it('calls onSubmit with url and name', () => {
     const { getByPlaceholderText, getByTestId } = render(<ServerForm {...defaultProps} />);
 
     fireEvent.changeText(getByPlaceholderText('https://'), 'https://ai.fr.ds.cc');
-    fireEvent.changeText(getByPlaceholderText(/名称/), 'My Server');
+    fireEvent.changeText(getByPlaceholderText('我的服务器'), 'My Server');
     fireEvent.press(getByTestId('submit-button'));
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith('https://ai.fr.ds.cc', 'My Server');

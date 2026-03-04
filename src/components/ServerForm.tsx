@@ -58,24 +58,30 @@ export function ServerForm({
             {initialUrl ? '编辑服务器' : '添加服务器'}
           </Text>
 
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-            placeholder="https://"
-            placeholderTextColor={colors.textSecondary}
-            value={url}
-            onChangeText={setUrl}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="url"
-          />
+          <View style={styles.field}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>服务器地址</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+              placeholder="https://"
+              placeholderTextColor={colors.textSecondary}
+              value={url}
+              onChangeText={setUrl}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+            />
+          </View>
 
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-            placeholder="名称（可选）"
-            placeholderTextColor={colors.textSecondary}
-            value={name}
-            onChangeText={setName}
-          />
+          <View style={styles.field}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>名称（可选）</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+              placeholder="我的服务器"
+              placeholderTextColor={colors.textSecondary}
+              value={name}
+              onChangeText={setName}
+            />
+          </View>
 
           <View style={styles.actions}>
             <TouchableOpacity
@@ -118,6 +124,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
     textAlign: 'center',
+  },
+  field: {
+    gap: 6,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '500',
+    paddingLeft: 2,
   },
   input: {
     backgroundColor: '#1a1a2e',
