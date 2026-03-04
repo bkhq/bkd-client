@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "BitK",
+    "slug": "bitk",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "bitk",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "io.bk.bitk",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "io.bk.bitk",
+      "adaptiveIcon": {
+        "backgroundColor": "#1a1a2e",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png"
+      }
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#1a1a2e",
+          "android": {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 76
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5a903f10-5f45-481d-ac8d-29b1cff59222"
+      }
+    }
+  }
+}
