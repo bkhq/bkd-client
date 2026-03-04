@@ -250,9 +250,9 @@ export function WebViewScreen({ url, debugMode = false, onHomePress, onMorePress
         </View>
       </View>
 
-      {/* Loading overlay */}
+      {/* Loading indicator */}
       {loading && !hasError && (
-        <View style={styles.loadingOverlay}>
+        <View style={styles.loadingCenter} pointerEvents="none">
           <ActivityIndicator size="large" color="#3b82f6" />
         </View>
       )}
@@ -303,11 +303,10 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
   },
-  loadingOverlay: {
+  loadingCenter: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(26, 26, 46, 0.8)',
   },
   errorContainer: {
     flex: 1,
