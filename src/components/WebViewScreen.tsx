@@ -128,8 +128,8 @@ export function WebViewScreen({ url, debugMode = false, onHomePress, onMorePress
 
   return (
     <View style={styles.container}>
-      {/* Top safe area */}
-      <View style={{ height: insets.top, backgroundColor: colors.background }} />
+      {/* Top safe area — use surface color to blend with web page */}
+      <View style={{ height: insets.top, backgroundColor: colors.surface }} />
 
       {/* WebView or Error — takes full space */}
       {hasError ? (
