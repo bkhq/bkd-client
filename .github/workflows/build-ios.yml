@@ -80,16 +80,16 @@ jobs:
           cd ios
           if [ "${{ inputs.sign }}" = "true" ]; then
             xcodebuild \
-              -workspace bitk.xcworkspace \
-              -scheme bitk \
+              -workspace bkd.xcworkspace \
+              -scheme bkd \
               -sdk iphoneos \
               -configuration ${{ inputs.configuration }} \
-              -archivePath $RUNNER_TEMP/bitk.xcarchive \
+              -archivePath $RUNNER_TEMP/bkd.xcarchive \
               archive
           else
             xcodebuild \
-              -workspace bitk.xcworkspace \
-              -scheme bitk \
+              -workspace bkd.xcworkspace \
+              -scheme bkd \
               -sdk iphonesimulator \
               -configuration ${{ inputs.configuration }} \
               -destination 'generic/platform=iOS Simulator' \
@@ -116,7 +116,7 @@ jobs:
           PLIST
 
           xcodebuild -exportArchive \
-            -archivePath $RUNNER_TEMP/bitk.xcarchive \
+            -archivePath $RUNNER_TEMP/bkd.xcarchive \
             -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist \
             -exportPath $RUNNER_TEMP/export
 
@@ -125,7 +125,7 @@ jobs:
         if: inputs.sign
         uses: actions/upload-artifact@v4
         with:
-          name: bitk-ios-${{ inputs.configuration }}
+          name: bkd-ios-${{ inputs.configuration }}
           path: ${{ runner.temp }}/export/*.ipa
 
       # Cleanup

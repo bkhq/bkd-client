@@ -23,10 +23,10 @@ describe('EmptyState', () => {
     expect(getByText('尚未添加服务器')).toBeTruthy();
   });
 
-  it('renders BitK logo/title', () => {
+  it('renders BKD logo/title', () => {
     const { getByText } = render(<EmptyState onAddServer={() => {}} />);
 
-    expect(getByText('BitK')).toBeTruthy();
+    expect(getByText('BKD')).toBeTruthy();
   });
 
   it('calls onAddServer when add button is pressed', () => {

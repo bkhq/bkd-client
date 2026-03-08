@@ -21,7 +21,7 @@
 | 设置入口 | WebView 页面顶部按钮，下拉显示（可切换/管理服务器） |
 | 刷新按钮 | WebView 页面顶部刷新按钮，点击重新加载当前页面 |
 | 平台 | Android + iOS，EAS + GitHub Actions |
-| App | 名称 `BitK`，ID `io.bk.bitk`，EAS Project ID `5a903f10-5f45-481d-ac8d-29b1cff59222` |
+| App | 名称 `BKD`，ID `io.bk.bkd`，EAS Project ID `5a903f10-5f45-481d-ac8d-29b1cff59222` |
 | 测试 | Jest 单元/组件测试 + E2E |
 
 ## 方案
@@ -38,7 +38,7 @@
 ### 目录结构
 
 ```
-bitk-client/
+bkd-client/
 ├── app/
 │   ├── _layout.tsx          # Root layout
 │   ├── index.tsx            # 首页（服务器列表）
@@ -58,7 +58,7 @@ bitk-client/
 ├── constants/
 │   └── index.ts             # App 常量
 ├── assets/
-│   └── logo.png             # BitK Logo
+│   └── logo.png             # BKD Logo
 ├── __tests__/               # 测试文件
 │   ├── utils/
 │   │   ├── database.test.ts

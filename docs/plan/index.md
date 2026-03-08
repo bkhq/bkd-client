@@ -1,4 +1,4 @@
-# BitK Client — 方案索引
+# BKD Client — 方案索引
 
 > 更新日期: 2026-03-04
 

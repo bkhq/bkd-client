@@ -27,6 +27,7 @@ export default function HomeScreen() {
 
   // WebView state — once set, WebView stays mounted
   const [activeUrl, setActiveUrl] = useState<string | null>(null);
+  const [activeServerName, setActiveServerName] = useState<string | null>(null);
   const [activeServerId, setActiveServerId] = useState<string | null>(null);
   const [showHome, setShowHome] = useState(true);
   const [debugMode, setDebugMode] = useState(false);
@@ -37,6 +38,7 @@ export default function HomeScreen() {
 
   const handleSelect = useCallback((server: Server) => {
     setActiveUrl(server.url);
+    setActiveServerName(server.name);
     setActiveServerId(server.id);
     setShowHome(false);
   }, []);
@@ -84,6 +86,7 @@ export default function HomeScreen() {
 
   const handleSwitchServer = useCallback((server: Server) => {
     setActiveUrl(server.url);
+    setActiveServerName(server.name);
     setActiveServerId(server.id);
     setShowHome(false);
   }, []);
@@ -105,6 +108,7 @@ export default function HomeScreen() {
         <View style={[StyleSheet.absoluteFill, { zIndex: showHome ? 0 : 1 }]} pointerEvents={showHome ? 'none' : 'auto'}>
           <WebViewScreen
             url={activeUrl}
+            serverName={activeServerName ?? undefined}
             debugMode={debugMode}
             onHomePress={handleGoHome}
             onMorePress={openMenu}
@@ -118,7 +122,7 @@ export default function HomeScreen() {
         <View style={[StyleSheet.absoluteFill, { zIndex: 2, backgroundColor: colors.background }]}>
           <SafeAreaView style={styles.safe}>
             <View style={styles.header}>
-              <Text style={[styles.headerTitle, { color: colors.text }]}>BitK</Text>
+              <Text style={[styles.headerTitle, { color: colors.text }]}>BKD</Text>
               <TouchableOpacity
                 testID="settings-button"
                 style={[styles.settingsButton, { backgroundColor: colors.surface }]}

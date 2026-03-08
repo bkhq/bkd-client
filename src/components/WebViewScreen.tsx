@@ -25,13 +25,14 @@ const EXTERNAL_AUTH_PATTERNS = [
 
 interface WebViewScreenProps {
   url: string;
+  serverName?: string;
   debugMode?: boolean;
   onHomePress: () => void;
   onMorePress: () => void;
   onUrlPillSwipeUp?: () => void;
 }
 
-export function WebViewScreen({ url, debugMode = false, onHomePress, onMorePress, onUrlPillSwipeUp }: WebViewScreenProps) {
+export function WebViewScreen({ url, serverName, debugMode = false, onHomePress, onMorePress, onUrlPillSwipeUp }: WebViewScreenProps) {
   const webViewRef = useRef<WebView>(null);
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -70,7 +71,7 @@ export function WebViewScreen({ url, debugMode = false, onHomePress, onMorePress
 
   const handleExternalAuth = useCallback(async (authUrl: string) => {
     try {
-      const callbackUrl = 'bitk://';
+      const callbackUrl = 'bkd://';
       const result = await WebBrowser.openAuthSessionAsync(authUrl, callbackUrl);
       if (result.type === 'success' || result.type === 'dismiss') {
         webViewRef.current?.reload();
@@ -226,7 +227,7 @@ export function WebViewScreen({ url, debugMode = false, onHomePress, onMorePress
             activeOpacity={0.7}
           >
             <Text style={[styles.urlText, { color: colors.toolbarText }]} numberOfLines={1}>
-              {(() => { try { return new URL(currentUrl).hostname; } catch { return currentUrl; } })()}
+              {serverName || (() => { try { return new URL(currentUrl).hostname; } catch { return currentUrl; } })()}
             </Text>
           </TouchableOpacity>
 

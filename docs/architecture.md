@@ -1,10 +1,10 @@
-# BitK Client — 架构文档
+# BKD Client — 架构文档
 
 > 更新日期: 2026-03-04
 
 ## 概述
 
-BitK Client 是 BitK 平台的客户端应用。
+BKD Client 是 BKD 平台的客户端应用。
 
 ## 技术栈
 

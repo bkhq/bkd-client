@@ -1,8 +1,8 @@
-appId: io.bk.bitk
+appId: io.bk.bkd
 name: Add Server Flow
 ---
 # Empty state should show add button
-- assertVisible: "BitK"
+- assertVisible: "BKD"
 - assertVisible: "添加服务器"
 
 # Tap add server

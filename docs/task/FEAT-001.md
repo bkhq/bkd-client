@@ -7,7 +7,7 @@
 
 ## 描述
 
-使用 Expo + react-native-webview 创建 BitK 平台客户端：
+使用 Expo + react-native-webview 创建 BKD 平台客户端：
 1. 首页输入服务器地址
 2. 顶部设置按钮可修改服务器地址
 3. WebView 完整支持移动端页面

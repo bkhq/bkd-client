@@ -1,8 +1,8 @@
-# BitK Client
+# BKD Client
 
 ## 项目概述
 
-BitK 平台客户端应用。
+BKD 平台客户端应用。
 
 ## 项目开发
 

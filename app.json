@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "BitK",
-    "slug": "bitk",
+    "name": "BKD",
+    "slug": "bkd",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "bitk",
+    "scheme": "bkd",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "io.bk.bitk",
+      "bundleIdentifier": "io.bk.bkd",
       "supportsTablet": true
     },
     "android": {
-      "package": "io.bk.bitk",
+      "package": "io.bk.bkd",
       "adaptiveIcon": {
         "backgroundColor": "#1a1a2e",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

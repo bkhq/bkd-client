@@ -1,4 +1,4 @@
-# BitK Client — 变更日志
+# BKD Client — 变更日志
 
 ## 2026-03-04 00:55 [progress]
 

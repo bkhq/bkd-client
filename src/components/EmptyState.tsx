@@ -10,7 +10,7 @@ export function EmptyState({ onAddServer }: EmptyStateProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { color: colors.text }]}>BitK</Text>
+      <Text style={[styles.title, { color: colors.text }]}>BKD</Text>
       <Text style={[styles.subtitle, { color: colors.textSecondary }]}>尚未添加服务器</Text>
       <TouchableOpacity
         testID="add-server-button"

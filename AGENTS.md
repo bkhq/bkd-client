@@ -1,4 +1,4 @@
-# BitK Client — Agent 协作指南
+# BKD Client — Agent 协作指南
 
 ## 项目开发
 

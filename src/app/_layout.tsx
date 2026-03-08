@@ -72,7 +72,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <Suspense fallback={<LoadingFallback />}>
           <SQLiteProvider
-            databaseName="bitk.db"
+            databaseName="bkd.db"
             onInit={migrateDb}
             useSuspense
           >
