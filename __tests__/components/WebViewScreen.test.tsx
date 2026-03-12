@@ -64,6 +64,7 @@ describe('WebViewScreen', () => {
 
     const webview = getByTestId('webview');
     expect(webview.props.source).toEqual({ uri: 'https://ai.fr.ds.cc' });
+    expect(webview.props.hideKeyboardAccessoryView).toBe(true);
   });
 
   it('renders refresh button', () => {

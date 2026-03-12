@@ -151,6 +151,7 @@ export function WebViewScreen({ url, serverName, debugMode = false, onHomePress,
           ref={webViewRef}
           source={{ uri: url }}
           style={styles.webview}
+          hideKeyboardAccessoryView
           onLoadStart={() => setLoading(true)}
           onLoadEnd={() => setLoading(false)}
           onError={handleError}
