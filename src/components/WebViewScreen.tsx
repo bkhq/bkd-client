@@ -150,6 +150,7 @@ export function WebViewScreen({ url, serverName, debugMode = false, onHomePress,
           testID="webview"
           ref={webViewRef}
           source={{ uri: url }}
+          hideKeyboardAccessoryView
           style={[styles.webview, { backgroundColor: colors.background }]}
           onLoadStart={() => setLoading(true)}
           onLoadEnd={() => setLoading(false)}
