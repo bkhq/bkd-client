@@ -128,7 +128,7 @@ export function WebViewScreen({ url, serverName, debugMode = false, onHomePress,
   `;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Top safe area — use surface color to blend with web page */}
       <View style={{ height: insets.top, backgroundColor: colors.surface }} />
 
@@ -150,7 +150,7 @@ export function WebViewScreen({ url, serverName, debugMode = false, onHomePress,
           testID="webview"
           ref={webViewRef}
           source={{ uri: url }}
-          style={styles.webview}
+          style={[styles.webview, { backgroundColor: colors.background }]}
           onLoadStart={() => setLoading(true)}
           onLoadEnd={() => setLoading(false)}
           onError={handleError}
