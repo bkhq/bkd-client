@@ -1,0 +1,12 @@
+name = "bkd-website"
+main = "src/index.ts"
+compatibility_date = "2026-03-15"
+
+[[r2_buckets]]
+binding = "RELEASES"
+bucket_name = "bkd-releases"
+
+[env.production]
+routes = [
+  { pattern = "bkd.bk.io", custom_domain = true }
+]
