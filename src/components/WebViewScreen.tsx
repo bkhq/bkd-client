@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  AppState,
   type GestureResponderEvent,
 } from 'react-native';
 import { WebView, type WebViewMessageEvent, type ShouldStartLoadRequest } from 'react-native-webview';
@@ -46,6 +47,18 @@ export function WebViewScreen({ url, serverName, debugMode = false, onHomePress,
   }, [url]);
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+
+  // Reload WebView content when app returns from background
+  const appState = useRef(AppState.currentState);
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextState) => {
+      if (appState.current.match(/inactive|background/) && nextState === 'active') {
+        webViewRef.current?.reload();
+      }
+      appState.current = nextState;
+    });
+    return () => sub.remove();
+  }, []);
 
   const handleReload = useCallback(() => {
     setHasError(false);
