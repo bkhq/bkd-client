@@ -24,9 +24,9 @@ jobs:
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -80,16 +80,16 @@ jobs:
           cd ios
           if [ "${{ inputs.sign }}" = "true" ]; then
             xcodebuild \
-              -workspace bkd.xcworkspace \
-              -scheme bkd \
+              -workspace BKD.xcworkspace \
+              -scheme BKD \
               -sdk iphoneos \
               -configuration ${{ inputs.configuration }} \
               -archivePath $RUNNER_TEMP/bkd.xcarchive \
               archive
           else
             xcodebuild \
-              -workspace bkd.xcworkspace \
-              -scheme bkd \
+              -workspace BKD.xcworkspace \
+              -scheme BKD \
               -sdk iphonesimulator \
               -configuration ${{ inputs.configuration }} \
               -destination 'generic/platform=iOS Simulator' \
@@ -123,7 +123,7 @@ jobs:
       # Upload IPA
       - name: Upload IPA
         if: inputs.sign
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: bkd-ios-${{ inputs.configuration }}
           path: ${{ runner.temp }}/export/*.ipa
