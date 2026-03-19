@@ -5,14 +5,48 @@ export interface VersionInfo {
   ios_url: string;
 }
 
-export function renderLanding(info: VersionInfo | null): string {
+export interface ReleaseFile {
+  version: string;
+  platform: "android" | "ios";
+  key: string;
+  size: number;
+  uploaded: string;
+}
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function renderReleaseRows(releases: ReleaseFile[]): string {
+  const grouped = new Map<string, ReleaseFile[]>();
+  for (const r of releases) {
+    const list = grouped.get(r.version) ?? [];
+    list.push(r);
+    grouped.set(r.version, list);
+  }
+  const versions = [...grouped.keys()].sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+  if (versions.length === 0) return `<tr><td colspan="4" style="text-align:center;color:#666;padding:1rem">No releases yet</td></tr>`;
+  return versions.map(v => {
+    const files = grouped.get(v)!;
+    const date = files[0].uploaded;
+    const android = files.find(f => f.platform === "android");
+    const ios = files.find(f => f.platform === "ios");
+    const links: string[] = [];
+    if (android) links.push(`<a href="/download/android/v${v}">APK <span class="size">(${formatSize(android.size)})</span></a>`);
+    if (ios) links.push(`<a href="/download/ios/v${v}">IPA <span class="size">(${formatSize(ios.size)})</span></a>`);
+    return `<tr><td>v${v}</td><td>${date}</td><td>${links.join(" &nbsp; ") || "—"}</td></tr>`;
+  }).join("\n");
+}
+
+export function renderLanding(info: VersionInfo | null, releases: ReleaseFile[] = []): string {
   const version = info?.version ?? "—";
   const date = info?.date ?? "";
   const hasAndroid = Boolean(info?.android_url);
   const hasIos = Boolean(info?.ios_url);
 
   return `<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,7 +69,9 @@ export function renderLanding(info: VersionInfo | null): string {
     .container {
       max-width: 480px;
       width: 100%;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .logo {
@@ -44,10 +80,10 @@ export function renderLanding(info: VersionInfo | null): string {
       border-radius: 22px;
       margin-bottom: 1.5rem;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
     }
 
     .version {
-      display: inline-block;
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
@@ -61,6 +97,7 @@ export function renderLanding(info: VersionInfo | null): string {
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
+      width: 100%;
     }
 
     .btn {
@@ -96,8 +133,55 @@ export function renderLanding(info: VersionInfo | null): string {
 
     .btn svg { width: 22px; height: 22px; fill: currentColor; }
 
+    .releases {
+      width: 100%;
+      margin-top: 2.5rem;
+    }
+
+    .releases h2 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #8888aa;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .releases table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .releases th {
+      text-align: left;
+      color: #666;
+      font-weight: 500;
+      padding: 0.5rem 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .releases td {
+      padding: 0.6rem 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #bbb;
+    }
+
+    .releases a {
+      color: #7c7cff;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .releases a:hover { text-decoration: underline; }
+
+    .releases .size {
+      color: #666;
+      font-size: 0.75rem;
+    }
+
     .footer {
-      margin-top: 3rem;
+      margin-top: 2rem;
       font-size: 0.8rem;
       color: #555;
     }
@@ -113,6 +197,7 @@ export function renderLanding(info: VersionInfo | null): string {
       <rect width="512" height="512" rx="110" fill="url(#bg)"/>
       <text x="256" y="344" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="240" font-weight="700" fill="white">BK</text>
     </svg>
+
     <div class="version">
       ${version !== "—" ? `v${version} &middot; ${date}` : "No release yet"}
     </div>
@@ -129,6 +214,14 @@ export function renderLanding(info: VersionInfo | null): string {
         <svg viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
         iOS (Ad Hoc)
       </a>
+    </div>
+
+    <div class="releases">
+      <h2>All Releases</h2>
+      <table>
+        <thead><tr><th>Version</th><th>Date</th><th>Download</th></tr></thead>
+        <tbody>${renderReleaseRows(releases)}</tbody>
+      </table>
     </div>
 
     <p class="footer">

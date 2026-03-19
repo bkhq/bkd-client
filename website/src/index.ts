@@ -1,11 +1,11 @@
-import { renderLanding, type VersionInfo } from "./templates/landing";
+import { renderLanding, type VersionInfo, type ReleaseFile } from "./templates/landing";
 import { renderManifest } from "./templates/manifest";
 
 interface Env {
   RELEASES: R2Bucket;
 }
 
-const BUNDLE_ID = "io.bk.bkd";
+const BUNDLE_ID = "io.ns.x";
 const APP_TITLE = "BKD";
 const CACHE_TTL = 60; // seconds
 
@@ -17,6 +17,37 @@ async function getLatestInfo(bucket: R2Bucket): Promise<VersionInfo | null> {
   } catch {
     return null;
   }
+}
+
+async function listReleases(bucket: R2Bucket): Promise<ReleaseFile[]> {
+  const files: ReleaseFile[] = [];
+  const androidList = await bucket.list({ prefix: "android/" });
+  for (const obj of androidList.objects) {
+    const match = obj.key.match(/bkd-v(.+)\.apk$/);
+    if (match) {
+      files.push({
+        version: match[1],
+        platform: "android",
+        key: obj.key,
+        size: obj.size,
+        uploaded: obj.uploaded.toISOString().slice(0, 10),
+      });
+    }
+  }
+  const iosList = await bucket.list({ prefix: "ios/" });
+  for (const obj of iosList.objects) {
+    const match = obj.key.match(/bkd-v(.+)\.ipa$/);
+    if (match) {
+      files.push({
+        version: match[1],
+        platform: "ios",
+        key: obj.key,
+        size: obj.size,
+        uploaded: obj.uploaded.toISOString().slice(0, 10),
+      });
+    }
+  }
+  return files;
 }
 
 function jsonResponse(data: unknown, status = 200): Response {
@@ -33,8 +64,11 @@ export default {
 
     // Landing page
     if (path === "/" || path === "") {
-      const info = await getLatestInfo(env.RELEASES);
-      return new Response(renderLanding(info), {
+      const [info, releases] = await Promise.all([
+        getLatestInfo(env.RELEASES),
+        listReleases(env.RELEASES),
+      ]);
+      return new Response(renderLanding(info, releases), {
         headers: {
           "Content-Type": "text/html; charset=utf-8",
           "Cache-Control": `public, max-age=${CACHE_TTL}`,
@@ -106,6 +140,26 @@ export default {
       return new Response(obj.body, {
         headers: {
           "Content-Type": "application/octet-stream",
+          "Content-Length": String(obj.size),
+        },
+      });
+    }
+
+    // Direct download by version: /download/android/v1.0.0, /download/ios/v1.0.0
+    const versionMatch = path.match(/^\/download\/(android|ios)\/v(.+)$/);
+    if (versionMatch) {
+      const [, platform, version] = versionMatch;
+      const ext = platform === "android" ? "apk" : "ipa";
+      const key = `${platform}/bkd-v${version}.${ext}`;
+      const obj = await env.RELEASES.get(key);
+      if (!obj) return new Response("Artifact not found", { status: 404 });
+      const contentType = platform === "android"
+        ? "application/vnd.android.package-archive"
+        : "application/octet-stream";
+      return new Response(obj.body, {
+        headers: {
+          "Content-Type": contentType,
+          "Content-Disposition": `attachment; filename="bkd-v${version}.${ext}"`,
           "Content-Length": String(obj.size),
         },
       });
