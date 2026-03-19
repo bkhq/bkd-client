@@ -143,6 +143,19 @@ jobs:
       - name: Expo prebuild
         run: npx expo prebuild --platform ios --clean --no-install
 
+      # Patch Podfile: downgrade Swift 6 strict concurrency errors to warnings
+      - name: Patch Podfile for Swift 6 compatibility
+        run: |
+          cd ios
+          sed -i '' '/react_native_post_install/i\
+              # Downgrade Swift 6 strict concurrency errors to warnings\
+              installer.pods_project.targets.each do |target|\
+                target.build_configurations.each do |bc|\
+                  bc.build_settings["SWIFT_STRICT_CONCURRENCY"] = "minimal"\
+                end\
+              end\
+          ' Podfile
+
       # Cache CocoaPods
       - uses: actions/cache@v5
         with:
@@ -199,7 +212,6 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
             PROVISIONING_PROFILE_SPECIFIER="${PP_UUID}" \
-            SWIFT_STRICT_CONCURRENCY=minimal \
             archive
 
       # Export IPA (ad-hoc for direct download)
