@@ -10,3 +10,7 @@ bucket_name = "bkd-releases"
 routes = [
   { pattern = "bkd.bk.io", custom_domain = true }
 ]
+
+[[env.production.r2_buckets]]
+binding = "RELEASES"
+bucket_name = "bkd-releases"
