@@ -20,7 +20,7 @@ on:
 jobs:
   build-ios:
     name: Xcode Build
-    runs-on: macos-15
+    runs-on: macos-14
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     steps:
@@ -91,8 +91,6 @@ jobs:
               CODE_SIGN_STYLE=Manual \
               CODE_SIGN_IDENTITY="Apple Distribution" \
               PROVISIONING_PROFILE_SPECIFIER="${PP_UUID}" \
-              SWIFT_STRICT_CONCURRENCY=minimal \
-              OTHER_SWIFT_FLAGS="-Xfrontend -swift-version -Xfrontend 5" \
               archive
           else
             xcodebuild \
@@ -102,8 +100,6 @@ jobs:
               -configuration ${{ inputs.configuration }} \
               -destination 'generic/platform=iOS Simulator' \
               CODE_SIGN_IDENTITY="" \
-              SWIFT_STRICT_CONCURRENCY=minimal \
-              OTHER_SWIFT_FLAGS="-Xfrontend -swift-version -Xfrontend 5" \
               CODE_SIGNING_REQUIRED=NO \
               CODE_SIGNING_ALLOWED=NO
           fi
