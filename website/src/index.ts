@@ -5,7 +5,7 @@ interface Env {
   RELEASES: R2Bucket;
 }
 
-const BUNDLE_ID = "io.ns.x";
+const BUNDLE_ID = "io.ns.bkd";
 const APP_TITLE = "BKD";
 const CACHE_TTL = 60; // seconds
 
