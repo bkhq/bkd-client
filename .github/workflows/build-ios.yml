@@ -85,6 +85,7 @@ jobs:
               -sdk iphoneos \
               -configuration ${{ inputs.configuration }} \
               -archivePath $RUNNER_TEMP/bkd.xcarchive \
+              DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
               archive
           else
             xcodebuild \

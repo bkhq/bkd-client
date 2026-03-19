@@ -187,6 +187,7 @@ jobs:
             -sdk iphoneos \
             -configuration Release \
             -archivePath $RUNNER_TEMP/bkd.xcarchive \
+            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
             archive
 
       # Export IPA (ad-hoc for direct download)
