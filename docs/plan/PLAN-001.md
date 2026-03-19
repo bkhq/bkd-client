@@ -91,10 +91,10 @@ bkd-client/
 
 ```typescript
 interface Server {
-  id: string;          // uuid
-  name: string;        // 显示名称（可选，默认用 URL）
-  url: string;         // https://ai.fr.ds.cc
-  createdAt: number;   // timestamp
+  id: string // uuid
+  name: string // 显示名称（可选，默认用 URL）
+  url: string // https://ai.fr.ds.cc
+  createdAt: number // timestamp
 }
 ```
 

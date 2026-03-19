@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       configuration:
-        description: 'Build configuration'
+        description: Build configuration
         required: true
-        default: 'Release'
+        default: Release
         type: choice
         options:
           - Debug
           - Release
       sign:
-        description: 'Code sign (requires secrets)'
+        description: Code sign (requires secrets)
         required: true
         default: false
         type: boolean

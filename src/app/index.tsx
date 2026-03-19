@@ -1,66 +1,69 @@
-import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useServers } from '@/hooks/useServers';
-import { useTheme, type ThemeMode } from '@/context/ThemeContext';
-import { EmptyState } from '@/components/EmptyState';
-import { ServerList } from '@/components/ServerList';
-import { ServerForm } from '@/components/ServerForm';
-import { WebViewScreen } from '@/components/WebViewScreen';
-import { BottomSheet } from '@/components/BottomSheet';
-import type { Server } from '@/types/server';
+import type { ThemeMode } from '@/context/ThemeContext'
+import type { Server } from '@/types/server'
+import { useCallback, useState } from 'react'
+import { Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { BottomSheet } from '@/components/BottomSheet'
+import { EmptyState } from '@/components/EmptyState'
+import { ServerForm } from '@/components/ServerForm'
+import { ServerList } from '@/components/ServerList'
+import { WebViewScreen } from '@/components/WebViewScreen'
+import { useTheme } from '@/context/ThemeContext'
+import { useServers } from '@/hooks/useServers'
 
-const THEME_OPTIONS: { value: ThemeMode; label: string; icon: string }[] = [
+const THEME_OPTIONS: { value: ThemeMode, label: string, icon: string }[] = [
   { value: 'system', label: '跟随系统', icon: '📱' },
   { value: 'light', label: '浅色模式', icon: '☀️' },
   { value: 'dark', label: '深色模式', icon: '🌙' },
-];
+]
 
 export default function HomeScreen() {
-  const { servers, addServer, updateServer, removeServer } = useServers();
-  const { mode, colors, setMode } = useTheme();
+  const { servers, addServer, updateServer, removeServer } = useServers()
+  const { mode, colors, setMode } = useTheme()
 
   // Home UI state
-  const [formVisible, setFormVisible] = useState(false);
-  const [settingsVisible, setSettingsVisible] = useState(false);
-  const [editingServer, setEditingServer] = useState<Server | null>(null);
+  const [formVisible, setFormVisible] = useState(false)
+  const [settingsVisible, setSettingsVisible] = useState(false)
+  const [editingServer, setEditingServer] = useState<Server | null>(null)
 
   // WebView state — once set, WebView stays mounted
-  const [activeUrl, setActiveUrl] = useState<string | null>(null);
-  const [activeServerName, setActiveServerName] = useState<string | null>(null);
-  const [activeServerId, setActiveServerId] = useState<string | null>(null);
-  const [showHome, setShowHome] = useState(true);
-  const [debugMode, setDebugMode] = useState(false);
-  const [sheetVisible, setSheetVisible] = useState(false);
-  const [sheetMode, setSheetMode] = useState<'servers' | 'menu'>('servers');
+  const [activeUrl, setActiveUrl] = useState<string | null>(null)
+  const [activeServerName, setActiveServerName] = useState<string | null>(null)
+  const [activeServerId, setActiveServerId] = useState<string | null>(null)
+  const [showHome, setShowHome] = useState(true)
+  const [debugMode, setDebugMode] = useState(false)
+  const [sheetVisible, setSheetVisible] = useState(false)
+  const [sheetMode, setSheetMode] = useState<'servers' | 'menu'>('servers')
 
   // --- Home handlers ---
 
   const handleSelect = useCallback((server: Server) => {
-    setActiveUrl(server.url);
-    setActiveServerName(server.name);
-    setActiveServerId(server.id);
-    setShowHome(false);
-  }, []);
+    setActiveUrl(server.url)
+    setActiveServerName(server.name)
+    setActiveServerId(server.id)
+    setShowHome(false)
+  }, [])
 
   const handleFormSubmit = useCallback(async (url: string, name: string) => {
     try {
       if (editingServer) {
-        await updateServer(editingServer.id, { url, name: name || url });
-      } else {
-        await addServer(url, name || undefined);
+        await updateServer(editingServer.id, { url, name: name || url })
       }
-      setFormVisible(false);
-      setEditingServer(null);
-    } catch (e) {
-      Alert.alert('错误', String(e));
+      else {
+        await addServer(url, name || undefined)
+      }
+      setFormVisible(false)
+      setEditingServer(null)
     }
-  }, [editingServer, addServer, updateServer]);
+    catch (e) {
+      Alert.alert('错误', String(e))
+    }
+  }, [editingServer, addServer, updateServer])
 
   const handleEdit = useCallback((server: Server) => {
-    setEditingServer(server);
-    setFormVisible(true);
-  }, []);
+    setEditingServer(server)
+    setFormVisible(true)
+  }, [])
 
   const handleDelete = useCallback((server: Server) => {
     Alert.alert('删除服务器', `确定要删除 "${server.name}" 吗？`, [
@@ -70,36 +73,36 @@ export default function HomeScreen() {
         style: 'destructive',
         onPress: () => removeServer(server.id),
       },
-    ]);
-  }, [removeServer]);
+    ])
+  }, [removeServer])
 
   const handleAdd = useCallback(() => {
-    setEditingServer(null);
-    setFormVisible(true);
-  }, []);
+    setEditingServer(null)
+    setFormVisible(true)
+  }, [])
 
   // --- WebView handlers ---
 
   const handleGoHome = useCallback(() => {
-    setShowHome(true);
-  }, []);
+    setShowHome(true)
+  }, [])
 
   const handleSwitchServer = useCallback((server: Server) => {
-    setActiveUrl(server.url);
-    setActiveServerName(server.name);
-    setActiveServerId(server.id);
-    setShowHome(false);
-  }, []);
+    setActiveUrl(server.url)
+    setActiveServerName(server.name)
+    setActiveServerId(server.id)
+    setShowHome(false)
+  }, [])
 
   const openServers = useCallback(() => {
-    setSheetMode('servers');
-    setSheetVisible(true);
-  }, []);
+    setSheetMode('servers')
+    setSheetVisible(true)
+  }, [])
 
   const openMenu = useCallback(() => {
-    setSheetMode('menu');
-    setSheetVisible(true);
-  }, []);
+    setSheetMode('menu')
+    setSheetVisible(true)
+  }, [])
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -132,17 +135,19 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
 
-            {servers.length === 0 ? (
-              <EmptyState onAddServer={handleAdd} />
-            ) : (
-              <ServerList
-                servers={servers}
-                onSelect={handleSelect}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onAdd={handleAdd}
-              />
-            )}
+            {servers.length === 0
+              ? (
+                  <EmptyState onAddServer={handleAdd} />
+                )
+              : (
+                  <ServerList
+                    servers={servers}
+                    onSelect={handleSelect}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onAdd={handleAdd}
+                  />
+                )}
           </SafeAreaView>
 
           {/* Settings sheet (home) */}
@@ -155,12 +160,12 @@ export default function HomeScreen() {
               <View style={[styles.settingsSheet, { backgroundColor: colors.surface }]}>
                 <View style={styles.settingsHandle} />
                 <Text style={[styles.settingsTitle, { color: colors.text }]}>主题设置</Text>
-                {THEME_OPTIONS.map((opt) => (
+                {THEME_OPTIONS.map(opt => (
                   <TouchableOpacity
                     key={opt.value}
                     style={[
                       styles.themeOption,
-                      mode === opt.value && { backgroundColor: colors.primary + '20' },
+                      mode === opt.value && { backgroundColor: `${colors.primary}20` },
                     ]}
                     onPress={() => setMode(opt.value)}
                   >
@@ -179,8 +184,8 @@ export default function HomeScreen() {
             visible={formVisible}
             onSubmit={handleFormSubmit}
             onCancel={() => {
-              setFormVisible(false);
-              setEditingServer(null);
+              setFormVisible(false)
+              setEditingServer(null)
             }}
             initialUrl={editingServer?.url}
             initialName={editingServer?.name}
@@ -197,12 +202,12 @@ export default function HomeScreen() {
         currentUrl={activeUrl ?? ''}
         debugMode={debugMode}
         onSelectServer={handleSwitchServer}
-        onToggleDebug={() => setDebugMode((prev) => !prev)}
+        onToggleDebug={() => setDebugMode(prev => !prev)}
         onGoHome={handleGoHome}
         onClose={() => setSheetVisible(false)}
       />
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -278,4 +283,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
-});
+})

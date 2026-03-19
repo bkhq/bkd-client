@@ -3,20 +3,20 @@ name: Delete Server Flow
 ---
 # First add a server
 - tapOn:
-    id: "add-server-button"
-- tapOn: "https://"
-- inputText: "https://delete-me.example.com"
+    id: add-server-button
+- tapOn: 'https://'
+- inputText: 'https://delete-me.example.com'
 - tapOn:
-    id: "submit-button"
+    id: submit-button
 
 # Verify it exists
-- assertVisible: "https://delete-me.example.com"
+- assertVisible: 'https://delete-me.example.com'
 
 # Long press to trigger delete
-- longPressOn: "https://delete-me.example.com"
+- longPressOn: 'https://delete-me.example.com'
 
 # Confirm deletion
-- tapOn: "删除"
+- tapOn: 删除
 
 # Verify it's gone
-- assertNotVisible: "https://delete-me.example.com"
+- assertNotVisible: 'https://delete-me.example.com'

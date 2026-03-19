@@ -1,6 +1,6 @@
 export interface Server {
-  id: string;
-  name: string;
-  url: string;
-  createdAt: number;
+  id: string
+  name: string
+  url: string
+  createdAt: number
 }

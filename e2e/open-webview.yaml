@@ -3,27 +3,27 @@ name: Open WebView Flow
 ---
 # Add a server first
 - tapOn:
-    id: "add-server-button"
-- tapOn: "https://"
-- inputText: "https://example.com"
+    id: add-server-button
+- tapOn: 'https://'
+- inputText: 'https://example.com'
 - tapOn:
-    id: "submit-button"
+    id: submit-button
 
 # Tap on the server to open WebView
-- tapOn: "https://example.com"
+- tapOn: 'https://example.com'
 
 # WebView should load - verify toolbar buttons exist
 - assertVisible:
-    id: "refresh-button"
+    id: refresh-button
 - assertVisible:
-    id: "menu-button"
+    id: menu-button
 
 # Open dropdown menu
 - tapOn:
-    id: "menu-button"
+    id: menu-button
 
 # Go back to home
-- tapOn: "返回首页"
+- tapOn: 返回首页
 
 # Should be back on home screen
-- assertVisible: "https://example.com"
+- assertVisible: 'https://example.com'

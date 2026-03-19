@@ -1,12 +1,12 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useTheme } from '@/context/ThemeContext';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { useTheme } from '@/context/ThemeContext'
 
 interface EmptyStateProps {
-  onAddServer: () => void;
+  onAddServer: () => void
 }
 
 export function EmptyState({ onAddServer }: EmptyStateProps) {
-  const { colors } = useTheme();
+  const { colors } = useTheme()
 
   return (
     <View style={styles.container}>
@@ -20,7 +20,7 @@ export function EmptyState({ onAddServer }: EmptyStateProps) {
         <Text style={styles.buttonText}>+ 添加服务器</Text>
       </TouchableOpacity>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -51,4 +51,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-});
+})

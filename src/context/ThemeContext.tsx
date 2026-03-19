@@ -1,21 +1,22 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { useColorScheme, Appearance } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
+import type { ReactNode } from 'react'
+import { useSQLiteContext } from 'expo-sqlite'
+import { createContext, use, useCallback, useEffect, useState } from 'react'
+import { Appearance, useColorScheme } from 'react-native'
 
-export type ThemeMode = 'system' | 'light' | 'dark';
+export type ThemeMode = 'system' | 'light' | 'dark'
 
 interface ThemeColors {
-  background: string;
-  surface: string;
-  text: string;
-  textSecondary: string;
-  border: string;
-  primary: string;
-  toolbarBg: string;
-  toolbarText: string;
-  toolbarBorder: string;
-  pillBg: string;
-  statusBarStyle: 'light' | 'dark';
+  background: string
+  surface: string
+  text: string
+  textSecondary: string
+  border: string
+  primary: string
+  toolbarBg: string
+  toolbarText: string
+  toolbarBorder: string
+  pillBg: string
+  statusBarStyle: 'light' | 'dark'
 }
 
 const LIGHT: ThemeColors = {
@@ -30,7 +31,7 @@ const LIGHT: ThemeColors = {
   toolbarBorder: '#d0d0d0',
   pillBg: '#e8e8e8',
   statusBarStyle: 'dark',
-};
+}
 
 const DARK: ThemeColors = {
   background: '#1a1a2e',
@@ -44,13 +45,13 @@ const DARK: ThemeColors = {
   toolbarBorder: '#3b3b5c',
   pillBg: '#2a2a3e',
   statusBarStyle: 'light',
-};
+}
 
 interface ThemeContextValue {
-  mode: ThemeMode;
-  colors: ThemeColors;
-  isDark: boolean;
-  setMode: (mode: ThemeMode) => void;
+  mode: ThemeMode
+  colors: ThemeColors
+  isDark: boolean
+  setMode: (mode: ThemeMode) => void
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
@@ -58,62 +59,67 @@ const ThemeContext = createContext<ThemeContextValue>({
   colors: DARK,
   isDark: true,
   setMode: () => {},
-});
+})
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTheme() {
-  return useContext(ThemeContext);
+  return use(ThemeContext)
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const db = useSQLiteContext();
-  const systemScheme = useColorScheme();
-  const [mode, setModeState] = useState<ThemeMode>('system');
+  const db = useSQLiteContext()
+  const systemScheme = useColorScheme()
+  const [mode, setMode] = useState<ThemeMode>('system')
 
   useEffect(() => {
     (async () => {
       try {
         const row = await db.getFirstAsync<{ value: string }>(
-          "SELECT value FROM settings WHERE key = 'theme'"
-        );
-        if (row) setModeState(row.value as ThemeMode);
-      } catch {
+          'SELECT value FROM settings WHERE key = \'theme\'',
+        )
+        if (row)
+          setMode(row.value as ThemeMode)
+      }
+      catch {
         // table may not exist yet, use default
       }
-    })();
-  }, [db]);
+    })()
+  }, [db])
 
-  const setMode = useCallback(async (newMode: ThemeMode) => {
-    setModeState(newMode);
+  const persistMode = useCallback(async (newMode: ThemeMode) => {
+    setMode(newMode)
     try {
       await db.runAsync(
-        "INSERT OR REPLACE INTO settings (key, value) VALUES ('theme', ?)",
-        [newMode]
-      );
-    } catch {
+        'INSERT OR REPLACE INTO settings (key, value) VALUES (\'theme\', ?)',
+        [newMode],
+      )
+    }
+    catch {
       // ignore
     }
-  }, [db]);
+  }, [db])
 
   // For 'system' mode, read directly from Appearance API (not affected by our override)
   const resolvedScheme = mode === 'system'
     ? (systemScheme ?? Appearance.getColorScheme() ?? 'light')
-    : mode;
-  const isDark = resolvedScheme === 'dark';
-  const colors = isDark ? DARK : LIGHT;
+    : mode
+  const isDark = resolvedScheme === 'dark'
+  const colors = isDark ? DARK : LIGHT
 
   // Sync system UI (keyboard, alerts, action sheets) with our theme
   useEffect(() => {
     if (mode === 'system') {
       // Clear override so useColorScheme() follows the OS setting again
-      Appearance.setColorScheme(null);
-    } else {
-      Appearance.setColorScheme(mode);
+      Appearance.setColorScheme(null as unknown as 'light' | 'dark')
     }
-  }, [mode]);
+    else {
+      Appearance.setColorScheme(mode)
+    }
+  }, [mode])
 
   return (
-    <ThemeContext.Provider value={{ mode, colors, isDark, setMode }}>
+    <ThemeContext value={{ mode, colors, isDark, setMode: persistMode }}>
       {children}
-    </ThemeContext.Provider>
-  );
+    </ThemeContext>
+  )
 }

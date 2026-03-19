@@ -1,114 +1,120 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
+import type { WebViewMessageEvent } from 'react-native-webview'
+import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes'
+import * as WebBrowser from 'expo-web-browser'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  View,
+  ActivityIndicator,
+  AppState,
+  ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-  ScrollView,
-  Platform,
-  AppState,
-  type GestureResponderEvent,
-} from 'react-native';
-import { WebView, type WebViewMessageEvent, type ShouldStartLoadRequest } from 'react-native-webview';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as WebBrowser from 'expo-web-browser';
-import { useTheme } from '@/context/ThemeContext';
+  View,
+} from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { WebView } from 'react-native-webview'
+import { useTheme } from '@/context/ThemeContext'
 
 // Only intercept OAuth providers that explicitly block WebView (popup/origin checks).
 // Other auth pages (like login.gid.io) should stay in WebView so cookies work naturally.
+const INACTIVE_BACKGROUND_RE = /inactive|background/
+
 const EXTERNAL_AUTH_PATTERNS = [
   'accounts.google.com',
   'appleid.apple.com',
   'github.com/login/oauth',
   'login.microsoftonline.com',
-];
+]
 
 interface WebViewScreenProps {
-  url: string;
-  serverName?: string;
-  debugMode?: boolean;
-  onHomePress: () => void;
-  onMorePress: () => void;
-  onUrlPillSwipeUp?: () => void;
+  url: string
+  serverName?: string
+  debugMode?: boolean
+  onHomePress: () => void
+  onMorePress: () => void
+  onUrlPillSwipeUp?: () => void
 }
 
 export function WebViewScreen({ url, serverName, debugMode = false, onHomePress, onMorePress, onUrlPillSwipeUp }: WebViewScreenProps) {
-  const webViewRef = useRef<WebView>(null);
-  const [loading, setLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [currentUrl, setCurrentUrl] = useState(url);
-  const [consoleLogs, setConsoleLogs] = useState<string[]>([]);
+  const webViewRef = useRef<WebView>(null)
+  const [loading, setLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
+  const [currentUrl, setCurrentUrl] = useState(url)
+  const [consoleLogs, setConsoleLogs] = useState<string[]>([])
 
   // Sync when url prop changes (e.g., switching servers)
   useEffect(() => {
-    setCurrentUrl(url);
-    setHasError(false);
-  }, [url]);
-  const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+    // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks-extra/no-direct-set-state-in-use-effect
+    setCurrentUrl(url)
+    // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect
+    setHasError(false)
+  }, [url])
+  const insets = useSafeAreaInsets()
+  const { colors } = useTheme()
 
   // Reload WebView content when app returns from background
-  const appState = useRef(AppState.currentState);
+  const appStateRef = useRef(AppState.currentState)
   useEffect(() => {
     const sub = AppState.addEventListener('change', (nextState) => {
-      if (appState.current.match(/inactive|background/) && nextState === 'active') {
-        webViewRef.current?.reload();
+      if (INACTIVE_BACKGROUND_RE.test(appStateRef.current) && nextState === 'active') {
+        webViewRef.current?.reload()
       }
-      appState.current = nextState;
-    });
-    return () => sub.remove();
-  }, []);
+      appStateRef.current = nextState
+    })
+    return () => sub.remove()
+  }, [])
 
   const handleReload = useCallback(() => {
-    setHasError(false);
-    setLoading(true);
-    webViewRef.current?.reload();
-  }, []);
+    setHasError(false)
+    setLoading(true)
+    webViewRef.current?.reload()
+  }, [])
 
   const handleError = useCallback(() => {
-    setHasError(true);
-    setLoading(false);
-  }, []);
+    setHasError(true)
+    setLoading(false)
+  }, [])
 
   const handleMessage = useCallback((event: WebViewMessageEvent) => {
     try {
-      const data = JSON.parse(event.nativeEvent.data);
+      const data = JSON.parse(event.nativeEvent.data)
       if (data.type === 'console') {
-        setConsoleLogs((prev) => [...prev.slice(-99), `[${data.level}] ${data.message}`]);
+        setConsoleLogs(prev => [...prev.slice(-99), `[${data.level}] ${data.message}`])
       }
-    } catch {
+    }
+    catch {
       // ignore non-JSON messages
     }
-  }, []);
+  }, [])
 
   const handleExternalAuth = useCallback(async (authUrl: string) => {
     try {
-      const callbackUrl = 'bkd://';
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, callbackUrl);
+      const callbackUrl = 'bkd://'
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, callbackUrl)
       if (result.type === 'success' || result.type === 'dismiss') {
-        webViewRef.current?.reload();
+        webViewRef.current?.reload()
       }
-    } catch {
-      webViewRef.current?.reload();
     }
-  }, []);
+    catch {
+      webViewRef.current?.reload()
+    }
+  }, [])
 
   const handleShouldStartLoad = useCallback((request: ShouldStartLoadRequest) => {
     // Always allow Turnstile challenge frames and about: URLs
     if (
-      request.url.startsWith('about:') ||
-      request.url.includes('challenges.cloudflare.com')
+      request.url.startsWith('about:')
+      || request.url.includes('challenges.cloudflare.com')
     ) {
-      return true;
+      return true
     }
-    const isAuthUrl = EXTERNAL_AUTH_PATTERNS.some((pattern) => request.url.includes(pattern));
+    const isAuthUrl = EXTERNAL_AUTH_PATTERNS.some(pattern => request.url.includes(pattern))
     if (isAuthUrl && request.url !== url) {
-      handleExternalAuth(request.url);
-      return false;
+      handleExternalAuth(request.url)
+      return false
     }
-    return true;
-  }, [url, handleExternalAuth]);
+    return true
+  }, [url, handleExternalAuth])
 
   // Inject script to capture console logs
   const injectedJS = `
@@ -138,7 +144,7 @@ export function WebViewScreen({ url, serverName, debugMode = false, onHomePress,
       };
     })();
     true;
-  `;
+  `
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -146,78 +152,88 @@ export function WebViewScreen({ url, serverName, debugMode = false, onHomePress,
       <View style={{ height: insets.top, backgroundColor: colors.surface }} />
 
       {/* WebView or Error — takes full space */}
-      {hasError ? (
-        <View testID="error-view" style={styles.errorContainer}>
-          <Text style={styles.errorText}>页面加载失败</Text>
-          <Text style={styles.errorUrl}>{currentUrl}</Text>
-          <TouchableOpacity
-            testID="retry-button"
-            style={styles.retryButton}
-            onPress={handleReload}
-          >
-            <Text style={styles.retryText}>重试</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <WebView
-          testID="webview"
-          ref={webViewRef}
-          source={{ uri: url }}
-          hideKeyboardAccessoryView
-          style={[styles.webview, { backgroundColor: colors.background }]}
-          onLoadStart={() => setLoading(true)}
-          onLoadEnd={() => setLoading(false)}
-          onError={handleError}
-          onNavigationStateChange={(navState) => {
-            if (navState.url) setCurrentUrl(navState.url);
-          }}
-          onMessage={handleMessage}
-          injectedJavaScript={injectedJS}
-          userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
-          javaScriptEnabled
-          domStorageEnabled
-          sharedCookiesEnabled
-          thirdPartyCookiesEnabled
-          incognito={false}
-          cacheEnabled
-          onShouldStartLoadWithRequest={handleShouldStartLoad}
-          originWhitelist={['https://*', 'http://*', 'about:blank', 'about:srcdoc']}
-          mixedContentMode="compatibility"
-          allowsInlineMediaPlayback
-          mediaPlaybackRequiresUserAction={false}
-          startInLoadingState={false}
-          allowsBackForwardNavigationGestures
-          allowFileAccess
-        />
-      )}
+      {hasError
+        ? (
+            <View testID="error-view" style={styles.errorContainer}>
+              <Text style={styles.errorText}>页面加载失败</Text>
+              <Text style={styles.errorUrl}>{currentUrl}</Text>
+              <TouchableOpacity
+                testID="retry-button"
+                style={styles.retryButton}
+                onPress={handleReload}
+              >
+                <Text style={styles.retryText}>重试</Text>
+              </TouchableOpacity>
+            </View>
+          )
+        : (
+            <WebView
+              testID="webview"
+              ref={webViewRef}
+              source={{ uri: url }}
+              hideKeyboardAccessoryView
+              style={[styles.webview, { backgroundColor: colors.background }]}
+              onLoadStart={() => setLoading(true)}
+              onLoadEnd={() => setLoading(false)}
+              onError={handleError}
+              onNavigationStateChange={(navState) => {
+                if (navState.url)
+                  setCurrentUrl(navState.url)
+              }}
+              onMessage={handleMessage}
+              injectedJavaScript={injectedJS}
+              userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
+              javaScriptEnabled
+              domStorageEnabled
+              sharedCookiesEnabled
+              thirdPartyCookiesEnabled
+              incognito={false}
+              cacheEnabled
+              onShouldStartLoadWithRequest={handleShouldStartLoad}
+              originWhitelist={['https://*', 'http://*', 'about:blank', 'about:srcdoc']}
+              mixedContentMode="compatibility"
+              allowsInlineMediaPlayback
+              mediaPlaybackRequiresUserAction={false}
+              startInLoadingState={false}
+              allowsBackForwardNavigationGestures
+              allowFileAccess
+            />
+          )}
 
       {/* Debug console — above toolbar */}
       {debugMode && (
         <View style={styles.debugPanel}>
           <View style={styles.debugHeader}>
-            <Text style={styles.debugTitle}>Console ({consoleLogs.length})</Text>
+            <Text style={styles.debugTitle}>
+              Console (
+              {consoleLogs.length}
+              )
+            </Text>
             <TouchableOpacity onPress={() => setConsoleLogs([])}>
               <Text style={styles.debugClear}>Clear</Text>
             </TouchableOpacity>
           </View>
           <ScrollView style={styles.debugScroll}>
-            {consoleLogs.length === 0 ? (
-              <Text style={styles.debugEmpty}>No logs yet</Text>
-            ) : (
-              consoleLogs.map((log, i) => (
-                <Text
-                  key={i}
-                  style={[
-                    styles.debugLog,
-                    log.startsWith('[error]') && styles.debugError,
-                    log.startsWith('[warn]') && styles.debugWarn,
-                  ]}
-                  selectable
-                >
-                  {log}
-                </Text>
-              ))
-            )}
+            {consoleLogs.length === 0
+              ? (
+                  <Text style={styles.debugEmpty}>No logs yet</Text>
+                )
+              : (
+                  consoleLogs.map((log, i) => (
+                    <Text
+                      // eslint-disable-next-line react/no-array-index-key -- log entries have no stable key
+                      key={i}
+                      style={[
+                        styles.debugLog,
+                        log.startsWith('[error]') && styles.debugError,
+                        log.startsWith('[warn]') && styles.debugWarn,
+                      ]}
+                      selectable
+                    >
+                      {log}
+                    </Text>
+                  ))
+                )}
           </ScrollView>
         </View>
       )}
@@ -241,7 +257,14 @@ export function WebViewScreen({ url, serverName, debugMode = false, onHomePress,
             activeOpacity={0.7}
           >
             <Text style={[styles.urlText, { color: colors.toolbarText }]} numberOfLines={1}>
-              {serverName || (() => { try { return new URL(currentUrl).hostname; } catch { return currentUrl; } })()}
+              {serverName || (() => {
+                try {
+                  return new URL(currentUrl).hostname
+                }
+                catch {
+                  return currentUrl
+                }
+              })()}
             </Text>
           </TouchableOpacity>
 
@@ -272,7 +295,7 @@ export function WebViewScreen({ url, serverName, debugMode = false, onHomePress,
         </View>
       )}
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -394,4 +417,4 @@ const styles = StyleSheet.create({
   debugWarn: {
     color: '#ffa94d',
   },
-});
+})

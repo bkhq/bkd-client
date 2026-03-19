@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react'
 import {
-  View,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  Modal,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { useTheme } from '@/context/ThemeContext';
+  View,
+} from 'react-native'
+import { useTheme } from '@/context/ThemeContext'
 
 interface ServerFormProps {
-  visible: boolean;
-  onSubmit: (url: string, name: string) => void;
-  onCancel: () => void;
-  initialUrl?: string;
-  initialName?: string;
+  visible: boolean
+  onSubmit: (url: string, name: string) => void
+  onCancel: () => void
+  initialUrl?: string
+  initialName?: string
 }
 
 export function ServerForm({
@@ -26,26 +26,29 @@ export function ServerForm({
   initialUrl = '',
   initialName = '',
 }: ServerFormProps) {
-  const { colors } = useTheme();
-  const [url, setUrl] = useState(initialUrl || 'https://');
-  const [name, setName] = useState(initialName);
+  const { colors } = useTheme()
+  const [url, setUrl] = useState(initialUrl || 'https://')
+  const [name, setName] = useState(initialName)
 
+  // Reset form state when modal visibility changes — intentional setState in effect
   useEffect(() => {
     if (visible) {
-      setUrl(initialUrl || 'https://');
-      setName(initialName);
+      // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks-extra/no-direct-set-state-in-use-effect -- intentional reset on modal open
+      setUrl(initialUrl || 'https://')
+      // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect
+      setName(initialName)
     }
-  }, [visible, initialUrl, initialName]);
+  }, [visible, initialUrl, initialName])
 
   const handleSubmit = () => {
-    const trimmedUrl = url.trim();
+    const trimmedUrl = url.trim()
     if (!trimmedUrl || trimmedUrl === 'https://' || trimmedUrl === 'http://') {
-      return;
+      return
     }
-    onSubmit(trimmedUrl, name.trim());
-    setUrl('https://');
-    setName('');
-  };
+    onSubmit(trimmedUrl, name.trim())
+    setUrl('https://')
+    setName('')
+  }
 
   return (
     <Modal visible={visible} transparent animationType="slide">
@@ -103,7 +106,7 @@ export function ServerForm({
         </View>
       </KeyboardAvoidingView>
     </Modal>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -171,4 +174,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-});
+})

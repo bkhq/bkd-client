@@ -2,25 +2,25 @@ appId: io.bk.bkd
 name: Add Server Flow
 ---
 # Empty state should show add button
-- assertVisible: "BKD"
-- assertVisible: "添加服务器"
+- assertVisible: BKD
+- assertVisible: 添加服务器
 
 # Tap add server
 - tapOn:
-    id: "add-server-button"
+    id: add-server-button
 
 # Fill in server URL
-- tapOn: "https://"
-- inputText: "https://ai.fr.ds.cc"
+- tapOn: 'https://'
+- inputText: 'https://ai.fr.ds.cc'
 
 # Fill in name
-- tapOn: "名称（可选）"
-- inputText: "Test Server"
+- tapOn: 名称（可选）
+- inputText: Test Server
 
 # Submit
 - tapOn:
-    id: "submit-button"
+    id: submit-button
 
 # Verify server appears in list
-- assertVisible: "Test Server"
-- assertVisible: "https://ai.fr.ds.cc"
+- assertVisible: Test Server
+- assertVisible: 'https://ai.fr.ds.cc'

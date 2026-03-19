@@ -1,20 +1,20 @@
+import type { Server } from '@/types/server'
 import {
-  View,
-  Text,
-  TouchableOpacity,
   Modal,
   StyleSheet,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { Server } from '@/types/server';
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 interface DropdownMenuProps {
-  visible: boolean;
-  servers: Server[];
-  currentServerId: string;
-  onSelectServer: (server: Server) => void;
-  onGoHome: () => void;
-  onClose: () => void;
+  visible: boolean
+  servers: Server[]
+  currentServerId: string
+  onSelectServer: (server: Server) => void
+  onGoHome: () => void
+  onClose: () => void
 }
 
 export function DropdownMenu({
@@ -25,9 +25,10 @@ export function DropdownMenu({
   onGoHome,
   onClose,
 }: DropdownMenuProps) {
-  const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets()
 
-  if (!visible) return null;
+  if (!visible)
+    return null
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
@@ -37,7 +38,7 @@ export function DropdownMenu({
         onPress={onClose}
       >
         <View style={[styles.menu, { top: insets.top + 48 }]}>
-          {servers.map((server) => (
+          {servers.map(server => (
             <TouchableOpacity
               key={server.id}
               style={[
@@ -45,8 +46,8 @@ export function DropdownMenu({
                 server.id === currentServerId && styles.menuItemActive,
               ]}
               onPress={() => {
-                onSelectServer(server);
-                onClose();
+                onSelectServer(server)
+                onClose()
               }}
             >
               <Text
@@ -66,8 +67,8 @@ export function DropdownMenu({
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => {
-              onGoHome();
-              onClose();
+              onGoHome()
+              onClose()
             }}
           >
             <Text style={styles.menuText}>← 返回首页</Text>
@@ -75,7 +76,7 @@ export function DropdownMenu({
         </View>
       </TouchableOpacity>
     </Modal>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -117,4 +118,4 @@ const styles = StyleSheet.create({
     backgroundColor: '#3b3b5c',
     marginVertical: 4,
   },
-});
+})

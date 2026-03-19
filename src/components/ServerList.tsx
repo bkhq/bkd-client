@@ -1,29 +1,29 @@
+import type { Server } from '@/types/server'
 import {
-  View,
-  Text,
   FlatList,
-  TouchableOpacity,
   StyleSheet,
-} from 'react-native';
-import type { Server } from '@/types/server';
-import { useTheme } from '@/context/ThemeContext';
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
+import { useTheme } from '@/context/ThemeContext'
 
 interface ServerListProps {
-  servers: Server[];
-  onSelect: (server: Server) => void;
-  onEdit: (server: Server) => void;
-  onDelete: (server: Server) => void;
-  onAdd: () => void;
+  servers: Server[]
+  onSelect: (server: Server) => void
+  onEdit: (server: Server) => void
+  onDelete: (server: Server) => void
+  onAdd: () => void
 }
 
 export function ServerList({ servers, onSelect, onEdit, onDelete, onAdd }: ServerListProps) {
-  const { colors } = useTheme();
+  const { colors } = useTheme()
 
   return (
     <View style={styles.container}>
       <FlatList
         data={servers}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <TouchableOpacity
@@ -55,7 +55,7 @@ export function ServerList({ servers, onSelect, onEdit, onDelete, onAdd }: Serve
         <Text style={[styles.addText, { color: colors.primary }]}>+ 添加服务器</Text>
       </TouchableOpacity>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -113,4 +113,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-});
+})

@@ -1,10 +1,11 @@
-import React, { Suspense } from 'react';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { SQLiteProvider } from 'expo-sqlite';
-import { Text, View, ScrollView } from 'react-native';
-import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { Stack } from 'expo-router'
+import { SQLiteProvider } from 'expo-sqlite'
+import { StatusBar } from 'expo-status-bar'
+import * as React from 'react'
+import { Suspense } from 'react'
+import { ScrollView, Text, View } from 'react-native'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { ThemeProvider, useTheme } from '@/context/ThemeContext'
 
 async function migrateDb(db: import('expo-sqlite').SQLiteDatabase) {
   await db.execAsync(`
@@ -18,12 +19,12 @@ async function migrateDb(db: import('expo-sqlite').SQLiteDatabase) {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
-  `);
+  `)
 }
 
 function ThemedStatusBar() {
-  const { colors } = useTheme();
-  return <StatusBar style={colors.statusBarStyle} />;
+  const { colors } = useTheme()
+  return <StatusBar style={colors.statusBarStyle} />
 }
 
 function LoadingFallback() {
@@ -31,17 +32,17 @@ function LoadingFallback() {
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1a1a2e' }}>
       <Text style={{ color: '#ffffff' }}>Loading...</Text>
     </View>
-  );
+  )
 }
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { error: Error | null }
 > {
-  state = { error: null as Error | null };
+  state = { error: null as Error | null }
 
   static getDerivedStateFromError(error: Error) {
-    return { error };
+    return { error }
   }
 
   render() {
@@ -60,9 +61,9 @@ class ErrorBoundary extends React.Component<
             </Text>
           </ScrollView>
         </View>
-      );
+      )
     }
-    return this.props.children;
+    return this.props.children
   }
 }
 
@@ -84,5 +85,5 @@ export default function RootLayout() {
         </Suspense>
       </SafeAreaProvider>
     </ErrorBoundary>
-  );
+  )
 }
