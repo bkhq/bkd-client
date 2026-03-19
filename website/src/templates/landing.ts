@@ -46,19 +46,6 @@ export function renderLanding(info: VersionInfo | null): string {
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
 
-    h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 0.5rem;
-    }
-
-    .subtitle {
-      color: #8888aa;
-      font-size: 0.95rem;
-      margin-bottom: 2rem;
-    }
-
     .version {
       display: inline-block;
       background: rgba(255, 255, 255, 0.06);
@@ -126,9 +113,6 @@ export function renderLanding(info: VersionInfo | null): string {
       <rect width="512" height="512" rx="110" fill="url(#bg)"/>
       <text x="256" y="344" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="240" font-weight="700" fill="white">BK</text>
     </svg>
-    <h1>BKD</h1>
-    <p class="subtitle">BKD Platform Client</p>
-
     <div class="version">
       ${version !== "—" ? `v${version} &middot; ${date}` : "No release yet"}
     </div>
