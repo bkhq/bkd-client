@@ -124,7 +124,7 @@ jobs:
   build-ios:
     name: Build iOS IPA
     needs: quality
-    runs-on: macos-14
+    runs-on: macos-15
     if: >
       github.event_name == 'push' ||
       github.event.inputs.platforms == 'all' ||
@@ -142,6 +142,20 @@ jobs:
       # Generate native iOS project
       - name: Expo prebuild
         run: npx expo prebuild --platform ios --clean --no-install
+
+      # Patch Podfile for Xcode 16.4 Swift 6 compatibility
+      - name: Patch Podfile for Swift 5
+        run: |
+          cd ios
+          # Insert Swift 5 version setting into post_install block
+          sed -i '' '/react_native_post_install/i\
+              # Force Swift 5 language mode for Xcode 16.4 compatibility\
+              installer.pods_project.targets.each do |target|\
+                target.build_configurations.each do |bc|\
+                  bc.build_settings["SWIFT_VERSION"] = "5.0"\
+                end\
+              end\
+          ' Podfile
 
       # Cache CocoaPods
       - uses: actions/cache@v5
