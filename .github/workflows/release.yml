@@ -2,16 +2,16 @@ name: Release
 
 on:
   push:
-    tags: ["v*"]
+    tags: ['v*']
   workflow_dispatch:
     inputs:
       version:
-        description: "Version (e.g. 1.0.0)"
+        description: Version (e.g. 1.0.0)
         required: true
       platforms:
-        description: "Platforms to build"
+        description: Platforms to build
         required: true
-        default: "all"
+        default: all
         type: choice
         options:
           - all
@@ -19,11 +19,11 @@ on:
           - ios
 
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: '20'
 
 jobs:
-  test:
-    name: Test
+  quality:
+    name: Quality Gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -32,11 +32,16 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - run: npm test -- --coverage --ci
+      - name: TypeScript check
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm test -- --coverage --ci
 
   build-android:
     name: Build Android APK
-    needs: test
+    needs: quality
     runs-on: ubuntu-latest
     if: >
       github.event_name == 'push' ||
@@ -118,7 +123,7 @@ jobs:
 
   build-ios:
     name: Build iOS IPA
-    needs: test
+    needs: quality
     runs-on: macos-15
     if: >
       github.event_name == 'push' ||
@@ -260,6 +265,9 @@ jobs:
           fi
           echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
 
+      - name: List artifacts
+        run: find artifacts -type f
+
       # Upload APK to R2
       - name: Upload APK
         if: needs.build-android.result == 'success'
@@ -267,9 +275,10 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
+          APK=$(find artifacts -name "*.apk" | head -1)
           wrangler r2 object put \
             "bkd-releases/android/bkd-v${VERSION}.apk" \
-            --file artifacts/android-apk/bkd-v${VERSION}.apk
+            --file "$APK" --remote
 
       # Upload IPA to R2
       - name: Upload IPA
@@ -278,9 +287,10 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
+          IPA=$(find artifacts -name "*.ipa" | head -1)
           wrangler r2 object put \
             "bkd-releases/ios/bkd-v${VERSION}.ipa" \
-            --file artifacts/ios-ipa/bkd-v${VERSION}.ipa
+            --file "$IPA" --remote
 
       # Update latest.json manifest
       - name: Update latest.json
@@ -310,7 +320,7 @@ jobs:
           wrangler r2 object put \
             "bkd-releases/latest.json" \
             --file /tmp/latest.json \
-            --content-type "application/json"
+            --content-type "application/json" --remote
 
   deploy-website:
     name: Deploy Website
