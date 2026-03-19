@@ -147,14 +147,26 @@ jobs:
       - name: Patch Podfile for Swift 6 compatibility
         run: |
           cd ios
-          sed -i '' '/react_native_post_install/i\
-              # Downgrade Swift 6 strict concurrency errors to warnings\
-              installer.pods_project.targets.each do |target|\
-                target.build_configurations.each do |bc|\
-                  bc.build_settings["SWIFT_STRICT_CONCURRENCY"] = "minimal"\
-                end\
-              end\
-          ' Podfile
+          python3 << 'PYEOF'
+          import re
+          with open('Podfile', 'r') as f:
+              content = f.read()
+          patch = """    # Downgrade Swift 6 strict concurrency errors to warnings
+              installer.pods_project.targets.each do |target|
+                target.build_configurations.each do |bc|
+                  bc.build_settings["SWIFT_STRICT_CONCURRENCY"] = "minimal"
+                end
+              end
+          """
+          content = content.replace(
+              'react_native_post_install(',
+              patch + '    react_native_post_install('
+          )
+          with open('Podfile', 'w') as f:
+              f.write(content)
+          PYEOF
+          echo "=== Patched Podfile post_install ==="
+          grep -A 10 "post_install" Podfile
 
       # Cache CocoaPods
       - uses: actions/cache@v5
