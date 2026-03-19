@@ -8,7 +8,7 @@
     "scheme": "bkd",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "io.bk.bkd",
+      "bundleIdentifier": "io.ns.x",
       "supportsTablet": true
     },
     "android": {
