@@ -33,11 +33,6 @@ jobs:
 
       - run: npm ci
 
-      # Use Xcode 16.1 (Swift 5.9) — 16.4 defaults to Swift 6 which
-      # breaks expo-modules-core and react-native-screens
-      - name: Select Xcode 16.1
-        run: sudo xcode-select -s /Applications/Xcode_16.1.app
-
       # Generate native iOS project
       - name: Prebuild iOS
         run: npx expo prebuild --platform ios --clean --no-install
@@ -96,6 +91,7 @@ jobs:
               CODE_SIGN_STYLE=Manual \
               CODE_SIGN_IDENTITY="Apple Distribution" \
               PROVISIONING_PROFILE_SPECIFIER="${PP_UUID}" \
+              SWIFT_STRICT_CONCURRENCY=minimal \
               archive
           else
             xcodebuild \
@@ -106,7 +102,8 @@ jobs:
               -destination 'generic/platform=iOS Simulator' \
               CODE_SIGN_IDENTITY="" \
               CODE_SIGNING_REQUIRED=NO \
-              CODE_SIGNING_ALLOWED=NO
+              CODE_SIGNING_ALLOWED=NO \
+              SWIFT_STRICT_CONCURRENCY=minimal
           fi
 
       # Export IPA (signed builds only)
