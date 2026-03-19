@@ -1,4 +1,4 @@
-name: Build & Test
+name: Test
 
 on:
   push:
@@ -22,26 +22,3 @@ jobs:
 
       - run: npm test -- --coverage --ci
         name: Run unit tests
-
-  build-android:
-    name: Build Android (EAS)
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 20
-          cache: npm
-
-      - uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - run: npm ci
-
-      - run: eas build --platform android --profile development --non-interactive
-        name: Build Android dev client
