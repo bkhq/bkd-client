@@ -182,8 +182,8 @@ jobs:
         run: |
           cd ios
           xcodebuild \
-            -workspace bkd.xcworkspace \
-            -scheme bkd \
+            -workspace BKD.xcworkspace \
+            -scheme BKD \
             -sdk iphoneos \
             -configuration Release \
             -archivePath $RUNNER_TEMP/bkd.xcarchive \
