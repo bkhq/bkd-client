@@ -121,7 +121,11 @@ export function renderLanding(info: VersionInfo | null): string {
 </head>
 <body>
   <div class="container">
-    <img class="logo" src="/icon.png" alt="BKD" />
+    <svg class="logo" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#2563eb"/></linearGradient></defs>
+      <rect width="512" height="512" rx="110" fill="url(#bg)"/>
+      <text x="256" y="344" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="240" font-weight="700" fill="white">BK</text>
+    </svg>
     <h1>BKD</h1>
     <p class="subtitle">BKD Platform Client</p>
 
