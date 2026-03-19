@@ -145,21 +145,59 @@ export default {
       });
     }
 
-    // Direct download by version: /download/android/v1.0.0, /download/ios/v1.0.0
-    const versionMatch = path.match(/^\/download\/(android|ios)\/v(.+)$/);
-    if (versionMatch) {
-      const [, platform, version] = versionMatch;
-      const ext = platform === "android" ? "apk" : "ipa";
-      const key = `${platform}/bkd-v${version}.${ext}`;
+    // Direct Android download by version: /download/android/v1.0.0
+    const androidVersionMatch = path.match(/^\/download\/android\/v(.+)$/);
+    if (androidVersionMatch) {
+      const version = androidVersionMatch[1];
+      const key = `android/bkd-v${version}.apk`;
       const obj = await env.RELEASES.get(key);
       if (!obj) return new Response("Artifact not found", { status: 404 });
-      const contentType = platform === "android"
-        ? "application/vnd.android.package-archive"
-        : "application/octet-stream";
       return new Response(obj.body, {
         headers: {
-          "Content-Type": contentType,
-          "Content-Disposition": `attachment; filename="bkd-v${version}.${ext}"`,
+          "Content-Type": "application/vnd.android.package-archive",
+          "Content-Disposition": `attachment; filename="bkd-v${version}.apk"`,
+          "Content-Length": String(obj.size),
+        },
+      });
+    }
+
+    // iOS install by version: /download/ios/v1.0.0 → itms-services redirect
+    const iosVersionMatch = path.match(/^\/download\/ios\/v(.+)$/);
+    if (iosVersionMatch) {
+      const version = iosVersionMatch[1];
+      const baseUrl = `${url.protocol}//${url.host}`;
+      const manifestUrl = `${baseUrl}/download/ios/v${version}/manifest.plist`;
+      return Response.redirect(
+        `itms-services://?action=download-manifest&url=${encodeURIComponent(manifestUrl)}`,
+        302,
+      );
+    }
+
+    // iOS manifest.plist by version: /download/ios/v1.0.0/manifest.plist
+    const iosManifestMatch = path.match(/^\/download\/ios\/v(.+)\/manifest\.plist$/);
+    if (iosManifestMatch) {
+      const version = iosManifestMatch[1];
+      const key = `ios/bkd-v${version}.ipa`;
+      const obj = await env.RELEASES.head(key);
+      if (!obj) return new Response("No iOS release available", { status: 404 });
+      const baseUrl = `${url.protocol}//${url.host}`;
+      const ipaUrl = `${baseUrl}/download/ios/v${version}/artifact`;
+      const plist = renderManifest(ipaUrl, BUNDLE_ID, version, APP_TITLE);
+      return new Response(plist, {
+        headers: { "Content-Type": "application/xml" },
+      });
+    }
+
+    // iOS IPA artifact by version: /download/ios/v1.0.0/artifact
+    const iosArtifactMatch = path.match(/^\/download\/ios\/v(.+)\/artifact$/);
+    if (iosArtifactMatch) {
+      const version = iosArtifactMatch[1];
+      const key = `ios/bkd-v${version}.ipa`;
+      const obj = await env.RELEASES.get(key);
+      if (!obj) return new Response("Artifact not found", { status: 404 });
+      return new Response(obj.body, {
+        headers: {
+          "Content-Type": "application/octet-stream",
           "Content-Length": String(obj.size),
         },
       });
