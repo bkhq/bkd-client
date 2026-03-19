@@ -199,6 +199,7 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
             PROVISIONING_PROFILE_SPECIFIER="${PP_UUID}" \
+            SWIFT_STRICT_CONCURRENCY=minimal \
             archive
 
       # Export IPA (ad-hoc for direct download)
