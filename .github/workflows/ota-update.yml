@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       message:
-        description: "Update description"
+        description: Update description
         required: true
         type: string
 

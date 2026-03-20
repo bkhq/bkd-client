@@ -185,15 +185,15 @@ export default function HomeScreen() {
           {/* Version info */}
           <View style={styles.versionContainer}>
             <Text style={[styles.versionText, { color: colors.textSecondary }]}>
-              v{Constants.expoConfig?.version ?? '?'}
-              {' '}build {Constants.expoConfig?.extra?.buildNumber ?? '?'}
-              {' '}({Constants.expoConfig?.extra?.commitHash ?? '?'})
+              {`v${Constants.expoConfig?.version ?? '?'} build ${Constants.expoConfig?.extra?.buildNumber ?? '?'} (${Constants.expoConfig?.extra?.commitHash ?? '?'})`}
             </Text>
-            {Updates.updateId && (
-              <Text style={[styles.versionText, { color: colors.textSecondary }]}>
-                OTA: {Updates.updateId.slice(0, 8)}
-              </Text>
-            )}
+            {Updates.updateId
+              ? (
+                  <Text style={[styles.versionText, { color: colors.textSecondary }]}>
+                    {`OTA: ${Updates.updateId.slice(0, 8)}`}
+                  </Text>
+                )
+              : null}
           </View>
 
           <ServerForm
