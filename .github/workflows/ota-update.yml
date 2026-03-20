@@ -25,8 +25,27 @@ jobs:
       - name: Bump OTA version
         run: npm run version:ota
 
-      - name: Export JS bundle
-        run: npx expo export --output-dir dist
+      - name: Export JS bundles
+        run: |
+          npx expo export --platform ios --output-dir dist-ios
+          npx expo export --platform android --output-dir dist-android
+
+          # Merge into single dist
+          cp -r dist-ios dist
+          cp -r dist-android/* dist/
+
+          # Merge metadata.json (iOS + Android)
+          python3 << 'PYEOF'
+          import json
+          with open('dist-ios/metadata.json') as f:
+              ios = json.load(f)
+          with open('dist-android/metadata.json') as f:
+              android = json.load(f)
+          merged = android.copy()
+          merged['fileMetadata']['ios'] = ios['fileMetadata']['ios']
+          with open('dist/metadata.json', 'w') as f:
+              json.dump(merged, f)
+          PYEOF
 
       - name: Upload to R2
         env:
@@ -41,35 +60,38 @@ jobs:
           UPDATE_PATH="updates/${RUNTIME_VERSION}/${TIMESTAMP}"
 
           echo "Publishing OTA update:"
-          echo "  Runtime: ${RUNTIME_VERSION}"
-          echo "  Build: ${BUILD}"
+          echo "  Runtime: ${RUNTIME_VERSION}, Build: ${BUILD}"
+          echo "  Path: ${UPDATE_PATH}"
           echo "  Message: ${{ inputs.message }}"
 
           # Upload metadata.json
           wrangler r2 object put "bkd-releases/${UPDATE_PATH}/metadata.json" \
             --file dist/metadata.json --remote
 
-          # Upload expoConfig.json
-          wrangler r2 object put "bkd-releases/${UPDATE_PATH}/expoConfig.json" \
-            --file dist/expoConfig.json --remote
+          # Upload expoConfig.json if exists
+          if [ -f dist/expoConfig.json ]; then
+            wrangler r2 object put "bkd-releases/${UPDATE_PATH}/expoConfig.json" \
+              --file dist/expoConfig.json --remote
+          fi
 
-          # Upload bundles
-          for f in dist/bundles/*; do
-            name=$(basename "$f")
-            wrangler r2 object put "bkd-releases/${UPDATE_PATH}/bundles/${name}" \
+          # Upload all files under _expo/ (bundles)
+          find dist/_expo -type f | while read f; do
+            rel=${f#dist/}
+            wrangler r2 object put "bkd-releases/${UPDATE_PATH}/${rel}" \
               --file "$f" --remote
           done
 
           # Upload assets
           if [ -d dist/assets ]; then
-            for f in dist/assets/*; do
-              name=$(basename "$f")
-              wrangler r2 object put "bkd-releases/${UPDATE_PATH}/assets/${name}" \
+            find dist/assets -type f | while read f; do
+              rel=${f#dist/}
+              wrangler r2 object put "bkd-releases/${UPDATE_PATH}/${rel}" \
                 --file "$f" --remote
             done
           fi
 
           echo "OTA update published: ${UPDATE_PATH}"
+          echo "  Files: $(find dist -type f | wc -l)"
 
       - name: Commit version bump
         run: |
