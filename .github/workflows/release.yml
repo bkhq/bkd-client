@@ -226,18 +226,25 @@ jobs:
             PROVISIONING_PROFILE_SPECIFIER="${PP_UUID}" \
             archive
 
-      # Export IPA (ad-hoc for direct download)
+      # Export IPA (release-testing = ad-hoc in Xcode 26+)
       - name: Export IPA
         run: |
-          cat > $RUNNER_TEMP/ExportOptions.plist << 'PLIST'
+          cat > $RUNNER_TEMP/ExportOptions.plist << PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
             <key>method</key>
-            <string>ad-hoc</string>
+            <string>release-testing</string>
             <key>teamID</key>
             <string>${{ secrets.APPLE_TEAM_ID }}</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>io.ns.bkd</key>
+              <string>${PP_UUID}</string>
+            </dict>
+            <key>signingStyle</key>
+            <string>manual</string>
           </dict>
           </plist>
           PLIST
