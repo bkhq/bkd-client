@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       message:
-        description: "Update message"
+        description: "Update description"
         required: true
         type: string
 
@@ -22,6 +22,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Bump OTA version
+        run: npm run version:ota
+
       - name: Export JS bundle
         run: npx expo export --output-dir dist
 
@@ -32,14 +35,14 @@ jobs:
         run: |
           npm install -g wrangler
 
-          # Read runtime version from app.json
-          RUNTIME_VERSION=$(node -e "console.log(require('./app.json').expo.runtimeVersion)")
+          RUNTIME_VERSION=$(node -e "console.log(require('./version.json').runtimeVersion)")
+          BUILD=$(node -e "console.log(require('./version.json').build)")
           TIMESTAMP=$(date +%s)
           UPDATE_PATH="updates/${RUNTIME_VERSION}/${TIMESTAMP}"
 
           echo "Publishing OTA update:"
-          echo "  Runtime version: ${RUNTIME_VERSION}"
-          echo "  Update ID: ${TIMESTAMP}"
+          echo "  Runtime: ${RUNTIME_VERSION}"
+          echo "  Build: ${BUILD}"
           echo "  Message: ${{ inputs.message }}"
 
           # Upload metadata.json
@@ -67,3 +70,11 @@ jobs:
           fi
 
           echo "OTA update published: ${UPDATE_PATH}"
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add version.json app.json package.json
+          git commit -m "chore: ota update build $(node -e "console.log(require('./version.json').build)") - ${{ inputs.message }}"
+          git push

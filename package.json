@@ -14,7 +14,13 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "validate": "npm run typecheck && npm run lint && npm run test -- --ci"
+    "validate": "npm run typecheck && npm run lint && npm run test -- --ci",
+    "version:show": "node scripts/version.mjs show",
+    "version:ota": "node scripts/version.mjs ota",
+    "version:patch": "node scripts/version.mjs patch",
+    "version:minor": "node scripts/version.mjs minor",
+    "version:major": "node scripts/version.mjs major",
+    "version:sync": "node scripts/version.mjs sync"
   },
   "dependencies": {
     "@react-navigation/native": "^7.1.28",
