@@ -22,6 +22,9 @@ export default antfu({
     'website/',
     'expo-env.d.ts',
     'docs/',
+    'scripts/',
+    'plugins/',
+    'app.config.js',
   ],
 }, {
   // React Native: StyleSheet.create at bottom of file is idiomatic
