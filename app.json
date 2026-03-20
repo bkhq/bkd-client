@@ -46,11 +46,11 @@
         "projectId": "5a903f10-5f45-481d-ac8d-29b1cff59222"
       }
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
-      "url": "https://u.expo.dev/5a903f10-5f45-481d-ac8d-29b1cff59222"
+      "url": "https://bkd.bk.io/api/manifest",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD"
     }
   }
 }

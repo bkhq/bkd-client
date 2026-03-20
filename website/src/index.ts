@@ -57,6 +57,194 @@ function jsonResponse(data: unknown, status = 200): Response {
   });
 }
 
+// ===== OTA Update Helpers =====
+
+interface UpdateMetadata {
+  version: number;
+  bundler: string;
+  fileMetadata: {
+    android: {
+      bundle: string;
+      assets: Array<{ path: string; ext: string }>;
+    };
+    ios: {
+      bundle: string;
+      assets: Array<{ path: string; ext: string }>;
+    };
+  };
+}
+
+const EXT_TO_MIME: Record<string, string> = {
+  ".bundle": "application/javascript",
+  ".js": "application/javascript",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".gif": "image/gif",
+  ".svg": "image/svg+xml",
+  ".ttf": "font/ttf",
+  ".otf": "font/otf",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+};
+
+async function handleOTAManifest(
+  request: Request,
+  env: Env,
+  url: URL,
+): Promise<Response> {
+  const platform = request.headers.get("expo-platform") ?? "";
+  const runtimeVersion = request.headers.get("expo-runtime-version") ?? "";
+  const protocolVersion = request.headers.get("expo-protocol-version") ?? "0";
+
+  if (!platform || !runtimeVersion) {
+    return new Response("Missing expo-platform or expo-runtime-version header", {
+      status: 400,
+    });
+  }
+
+  // Find the latest update for this runtime version
+  const prefix = `updates/${runtimeVersion}/`;
+  const list = await env.RELEASES.list({ prefix, delimiter: "/" });
+
+  // Get all update directories, sorted descending (newest first)
+  const dirs = list.delimitedPrefixes
+    .map((p) => p.replace(prefix, "").replace("/", ""))
+    .filter((d) => /^\d+$/.test(d))
+    .sort((a, b) => Number(b) - Number(a));
+
+  if (dirs.length === 0) {
+    if (protocolVersion === "1") {
+      return new Response(null, {
+        status: 204,
+        headers: { "expo-protocol-version": "1" },
+      });
+    }
+    return jsonResponse({ error: "No updates available" }, 404);
+  }
+
+  const latestDir = dirs[0];
+  const updatePath = `${prefix}${latestDir}`;
+
+  // Read metadata.json
+  const metaObj = await env.RELEASES.get(`${updatePath}/metadata.json`);
+  if (!metaObj) {
+    return jsonResponse({ error: "metadata.json not found" }, 404);
+  }
+  const metadata = (await metaObj.json()) as UpdateMetadata;
+
+  // Read expoConfig.json
+  const configObj = await env.RELEASES.get(`${updatePath}/expoConfig.json`);
+  const expoConfig = configObj ? await configObj.json() : {};
+
+  // Get platform-specific file metadata
+  const platformMeta = metadata.fileMetadata[platform as "ios" | "android"];
+  if (!platformMeta) {
+    return jsonResponse({ error: `No metadata for platform: ${platform}` }, 404);
+  }
+
+  const baseUrl = `${url.protocol}//${url.host}`;
+
+  // Build assets array
+  const assets = platformMeta.assets.map((asset) => {
+    const ext = `.${asset.ext}`;
+    const filename = asset.path.split("/").pop() ?? "";
+    return {
+      hash: filename,
+      key: filename,
+      fileExtension: ext,
+      contentType: EXT_TO_MIME[ext] ?? "application/octet-stream",
+      url: `${baseUrl}/api/assets?asset=${encodeURIComponent(`${updatePath}/${asset.path}`)}&runtimeVersion=${runtimeVersion}&platform=${platform}`,
+    };
+  });
+
+  // Build launch asset (JS bundle)
+  const bundleName = platformMeta.bundle.split("/").pop() ?? "";
+  const launchAsset = {
+    hash: bundleName,
+    key: bundleName,
+    fileExtension: ".bundle",
+    contentType: "application/javascript",
+    url: `${baseUrl}/api/assets?asset=${encodeURIComponent(`${updatePath}/${platformMeta.bundle}`)}&runtimeVersion=${runtimeVersion}&platform=${platform}`,
+  };
+
+  const manifest = {
+    id: `${latestDir}-${platform}`,
+    createdAt: new Date(Number(latestDir) * 1000).toISOString(),
+    runtimeVersion,
+    assets,
+    launchAsset,
+    metadata: {},
+    extra: { expoClient: expoConfig },
+  };
+
+  const headers: Record<string, string> = {
+    "expo-protocol-version": protocolVersion,
+    "expo-sfv-version": "0",
+    "cache-control": "private, max-age=0",
+  };
+
+  // Return as multipart/mixed or JSON based on Accept header
+  const accept = request.headers.get("accept") ?? "";
+  if (accept.includes("multipart/mixed")) {
+    const boundary = "ota-boundary";
+    const body = [
+      `--${boundary}`,
+      `Content-Disposition: form-data; name="manifest"`,
+      `Content-Type: application/json; charset=utf-8`,
+      ``,
+      JSON.stringify(manifest),
+      `--${boundary}`,
+      `Content-Disposition: form-data; name="extensions"`,
+      `Content-Type: application/json`,
+      ``,
+      JSON.stringify({ assetRequestHeaders: {} }),
+      `--${boundary}--`,
+    ].join("\r\n");
+
+    return new Response(body, {
+      headers: {
+        ...headers,
+        "Content-Type": `multipart/mixed; boundary=${boundary}`,
+      },
+    });
+  }
+
+  return new Response(JSON.stringify(manifest), {
+    headers: {
+      ...headers,
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+async function handleOTAAsset(
+  _request: Request,
+  env: Env,
+  url: URL,
+): Promise<Response> {
+  const assetPath = url.searchParams.get("asset");
+  if (!assetPath) {
+    return new Response("Missing asset parameter", { status: 400 });
+  }
+
+  const obj = await env.RELEASES.get(assetPath);
+  if (!obj) {
+    return new Response("Asset not found", { status: 404 });
+  }
+
+  // Determine content type from extension
+  const ext = assetPath.match(/\.[^.]+$/)?.[0] ?? "";
+  const contentType = EXT_TO_MIME[ext] ?? "application/octet-stream";
+
+  return new Response(obj.body, {
+    headers: {
+      "Content-Type": contentType,
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "Content-Length": String(obj.size),
+    },
+  });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -207,6 +395,18 @@ export default {
     if (path === "/api/version") {
       const info = await getLatestInfo(env.RELEASES);
       return jsonResponse(info ?? { error: "no release" }, info ? 200 : 404);
+    }
+
+    // ===== OTA Updates (expo-updates protocol) =====
+
+    // GET /api/manifest — expo-updates manifest endpoint
+    if (path === "/api/manifest") {
+      return handleOTAManifest(request, env, url);
+    }
+
+    // GET /api/assets — serve update assets from R2
+    if (path.startsWith("/api/assets")) {
+      return handleOTAAsset(request, env, url);
     }
 
     return new Response("Not Found", { status: 404 });
