@@ -132,6 +132,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # Xcode 26.2 (Swift 6.2) — required by expo-modules-core for IsolatedConformances
+      - name: Select Xcode 26.2
+        run: sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
+
       - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -143,29 +147,16 @@ jobs:
       - name: Expo prebuild
         run: npx expo prebuild --platform ios --clean --no-install
 
-      # Patch Podfile: fix expo-modules-core Swift 6 compatibility (ref: tamagui)
+      # Set SWIFT_STRICT_CONCURRENCY=minimal for all pod targets
       - name: Patch Podfile for Swift 6 compatibility
         run: |
           cd ios
           python3 << 'PYEOF'
           with open('Podfile', 'r') as f:
               content = f.read()
-          # Target ExpoModulesCore specifically: Swift 6 + minimal concurrency + IsolatedConformances
           patch = '''    installer.pods_project.targets.each do |target|
-                if ['ExpoModulesCore', 'expo-modules-core'].include?(target.name)
-                  target.build_configurations.each do |bc|
-                    bc.build_settings["SWIFT_VERSION"] = "6"
-                    bc.build_settings["SWIFT_STRICT_CONCURRENCY"] = "minimal"
-                    bc.build_settings["SWIFT_COMPILATION_MODE"] = "singlefile"
-                    flags = bc.build_settings["OTHER_SWIFT_FLAGS"] || "$(inherited)"
-                    unless flags.include?("IsolatedConformances")
-                      bc.build_settings["OTHER_SWIFT_FLAGS"] = "#{flags} -enable-upcoming-feature IsolatedConformances"
-                    end
-                  end
-                else
-                  target.build_configurations.each do |bc|
-                    bc.build_settings["SWIFT_STRICT_CONCURRENCY"] = "minimal"
-                  end
+                target.build_configurations.each do |bc|
+                  bc.build_settings["SWIFT_STRICT_CONCURRENCY"] = "minimal"
                 end
               end
           '''
@@ -176,8 +167,6 @@ jobs:
           with open('Podfile', 'w') as f:
               f.write(content)
           PYEOF
-          echo "=== Patched Podfile ==="
-          grep -A 20 "post_install" Podfile
 
       # Cache CocoaPods
       - uses: actions/cache@v5
