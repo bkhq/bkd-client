@@ -1,5 +1,7 @@
 import type { ThemeMode } from '@/context/ThemeContext'
 import type { Server } from '@/types/server'
+import Constants from 'expo-constants'
+import * as Updates from 'expo-updates'
 import { useCallback, useState } from 'react'
 import { Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -180,6 +182,20 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </Modal>
 
+          {/* Version info */}
+          <View style={styles.versionContainer}>
+            <Text style={[styles.versionText, { color: colors.textSecondary }]}>
+              v{Constants.expoConfig?.version ?? '?'}
+              {' '}build {Constants.expoConfig?.extra?.buildNumber ?? '?'}
+              {' '}({Constants.expoConfig?.extra?.commitHash ?? '?'})
+            </Text>
+            {Updates.updateId && (
+              <Text style={[styles.versionText, { color: colors.textSecondary }]}>
+                OTA: {Updates.updateId.slice(0, 8)}
+              </Text>
+            )}
+          </View>
+
           <ServerForm
             visible={formVisible}
             onSubmit={handleFormSubmit}
@@ -282,5 +298,14 @@ const styles = StyleSheet.create({
   themeCheck: {
     fontSize: 18,
     fontWeight: '700',
+  },
+  versionContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+    alignItems: 'center',
+  },
+  versionText: {
+    fontSize: 11,
+    opacity: 0.6,
   },
 })
