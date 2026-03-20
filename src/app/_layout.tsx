@@ -1,11 +1,15 @@
 import { Stack } from 'expo-router'
+import * as SplashScreen from 'expo-splash-screen'
 import { SQLiteProvider } from 'expo-sqlite'
 import { StatusBar } from 'expo-status-bar'
 import * as React from 'react'
-import { Suspense } from 'react'
-import { ScrollView, Text, View } from 'react-native'
+import { Suspense, useCallback } from 'react'
+import { Platform, ScrollView, Text, View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { ThemeProvider, useTheme } from '@/context/ThemeContext'
+
+// Prevent splash screen from auto-hiding before app is ready
+SplashScreen.preventAutoHideAsync()
 
 async function migrateDb(db: import('expo-sqlite').SQLiteDatabase) {
   await db.execAsync(`
@@ -24,7 +28,13 @@ async function migrateDb(db: import('expo-sqlite').SQLiteDatabase) {
 
 function ThemedStatusBar() {
   const { colors } = useTheme()
-  return <StatusBar style={colors.statusBarStyle} />
+  return (
+    <StatusBar
+      style={colors.statusBarStyle}
+      translucent={Platform.OS === 'android'}
+      backgroundColor="transparent"
+    />
+  )
 }
 
 function LoadingFallback() {
@@ -68,6 +78,10 @@ class ErrorBoundary extends React.Component<
 }
 
 export default function RootLayout() {
+  const onLayoutReady = useCallback(async () => {
+    await SplashScreen.hideAsync()
+  }, [])
+
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
@@ -79,7 +93,9 @@ export default function RootLayout() {
           >
             <ThemeProvider>
               <ThemedStatusBar />
-              <Stack screenOptions={{ headerShown: false }} />
+              <View style={{ flex: 1 }} onLayout={onLayoutReady}>
+                <Stack screenOptions={{ headerShown: false }} />
+              </View>
             </ThemeProvider>
           </SQLiteProvider>
         </Suspense>

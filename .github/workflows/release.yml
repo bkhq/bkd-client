@@ -93,6 +93,25 @@ jobs:
           PROPS
           fi
 
+      # Add ProGuard keep rules for React Native + Expo
+      - name: Add ProGuard rules
+        run: |
+          cat >> android/app/proguard-rules.pro << 'RULES'
+          # Hermes engine
+          -keep class com.facebook.hermes.unicode.** { *; }
+          -keep class com.facebook.jni.** { *; }
+          # React Native
+          -keep,allowobfuscation @interface com.facebook.proguard.annotations.DoNotStrip
+          -keep,allowobfuscation @interface com.facebook.proguard.annotations.KeepGettersAndSetters
+          -keep @com.facebook.proguard.annotations.DoNotStrip class *
+          -keepclassmembers class * { @com.facebook.proguard.annotations.DoNotStrip *; }
+          # Expo modules
+          -keep class expo.modules.** { *; }
+          -keep class com.facebook.react.** { *; }
+          # WebView
+          -keepclassmembers class * extends android.webkit.WebView { *; }
+          RULES
+
       # Build APK
       - name: Build APK
         working-directory: android
