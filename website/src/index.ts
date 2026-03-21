@@ -214,6 +214,7 @@ async function handleOTAManifest(
       ``,
       JSON.stringify({ assetRequestHeaders: {} }),
       `--${boundary}--`,
+      ``,
     ].join("\r\n");
 
     return new Response(body, {
