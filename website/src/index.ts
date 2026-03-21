@@ -199,19 +199,18 @@ async function handleOTAManifest(
     "cache-control": "private, max-age=0",
   };
 
-  // Return as multipart/mixed or JSON based on Accept header
-  const accept = request.headers.get("accept") ?? "";
-  if (accept.includes("multipart/mixed")) {
+  // Protocol v1 requires multipart/mixed response
+  if (protocolVersion === "1") {
     const boundary = "ota-boundary";
     const body = [
       `--${boundary}`,
-      `Content-Disposition: form-data; name="manifest"`,
-      `Content-Type: application/json; charset=utf-8`,
+      `Content-Type: application/json`,
+      `Content-Disposition: inline; name="manifest"`,
       ``,
       JSON.stringify(manifest),
       `--${boundary}`,
-      `Content-Disposition: form-data; name="extensions"`,
       `Content-Type: application/json`,
+      `Content-Disposition: inline; name="extensions"`,
       ``,
       JSON.stringify({ assetRequestHeaders: {} }),
       `--${boundary}--`,
@@ -220,15 +219,16 @@ async function handleOTAManifest(
     return new Response(body, {
       headers: {
         ...headers,
-        "Content-Type": `multipart/mixed; boundary=${boundary}`,
+        "content-type": `multipart/mixed; boundary=${boundary}`,
       },
     });
   }
 
+  // Protocol v0 fallback: plain JSON
   return new Response(JSON.stringify(manifest), {
     headers: {
       ...headers,
-      "Content-Type": "application/json",
+      "content-type": "application/json",
     },
   });
 }
