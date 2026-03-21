@@ -87,6 +87,16 @@ const EXT_TO_MIME: Record<string, string> = {
   ".woff2": "font/woff2",
 };
 
+async function generateUUID(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  const hex = [...new Uint8Array(hash)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  // Format as UUID: 8-4-4-4-12
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+}
+
 async function handleOTAManifest(
   request: Request,
   env: Env,
@@ -167,14 +177,20 @@ async function handleOTAManifest(
     url: `${baseUrl}/api/assets?asset=${encodeURIComponent(`${updatePath}/${platformMeta.bundle}`)}&runtimeVersion=${runtimeVersion}&platform=${platform}`,
   };
 
+  // Generate a deterministic UUID from the update path + platform
+  const updateId = await generateUUID(`${updatePath}-${platform}`);
+
   const manifest = {
-    id: `${latestDir}-${platform}`,
+    id: updateId,
     createdAt: new Date(Number(latestDir) * 1000).toISOString(),
     runtimeVersion,
     assets,
     launchAsset,
     metadata: {},
-    extra: { expoClient: expoConfig },
+    extra: {
+      scopeKey: "@anonymous/bitk",
+      expoClient: expoConfig,
+    },
   };
 
   const headers: Record<string, string> = {
