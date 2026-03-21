@@ -204,13 +204,13 @@ async function handleOTAManifest(
     const boundary = "ota-boundary";
     const body = [
       `--${boundary}`,
-      `Content-Type: application/json`,
-      `Content-Disposition: inline; name="manifest"`,
+      `Content-Disposition: form-data; name="manifest"`,
+      `Content-Type: application/json; charset=utf-8`,
       ``,
       JSON.stringify(manifest),
       `--${boundary}`,
+      `Content-Disposition: form-data; name="extensions"`,
       `Content-Type: application/json`,
-      `Content-Disposition: inline; name="extensions"`,
       ``,
       JSON.stringify({ assetRequestHeaders: {} }),
       `--${boundary}--`,
