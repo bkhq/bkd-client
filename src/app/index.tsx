@@ -3,7 +3,7 @@ import type { Server } from '@/types/server'
 import Constants from 'expo-constants'
 import * as Updates from 'expo-updates'
 import { useCallback, useState } from 'react'
-import { Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { BottomSheet } from '@/components/BottomSheet'
 import { EmptyState } from '@/components/EmptyState'
@@ -27,6 +27,38 @@ export default function HomeScreen() {
   const [formVisible, setFormVisible] = useState(false)
   const [settingsVisible, setSettingsVisible] = useState(false)
   const [editingServer, setEditingServer] = useState<Server | null>(null)
+
+  // OTA update state
+  const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'downloading' | 'ready' | 'error'>('idle')
+  const [updateMessage, setUpdateMessage] = useState('')
+
+  const handleCheckUpdate = useCallback(async () => {
+    try {
+      setUpdateStatus('checking')
+      setUpdateMessage('Checking for updates...')
+      const check = await Updates.checkForUpdateAsync()
+      if (check.isAvailable) {
+        setUpdateStatus('downloading')
+        setUpdateMessage('Downloading update...')
+        await Updates.fetchUpdateAsync()
+        setUpdateStatus('ready')
+        setUpdateMessage('Update ready! Restart to apply.')
+      }
+      else {
+        setUpdateStatus('idle')
+        setUpdateMessage('Already up to date.')
+        setTimeout(setUpdateMessage, 3000, '')
+      }
+    }
+    catch (e) {
+      setUpdateStatus('error')
+      setUpdateMessage(`Error: ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }, [])
+
+  const handleApplyUpdate = useCallback(async () => {
+    await Updates.reloadAsync()
+  }, [])
 
   // WebView state — once set, WebView stays mounted
   const [activeUrl, setActiveUrl] = useState<string | null>(null)
@@ -161,7 +193,10 @@ export default function HomeScreen() {
             >
               <View style={[styles.settingsSheet, { backgroundColor: colors.surface }]}>
                 <View style={styles.settingsHandle} />
-                <Text style={[styles.settingsTitle, { color: colors.text }]}>主题设置</Text>
+                <Text style={[styles.settingsTitle, { color: colors.text }]}>Settings</Text>
+
+                {/* Theme section */}
+                <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Theme</Text>
                 {THEME_OPTIONS.map(opt => (
                   <TouchableOpacity
                     key={opt.value}
@@ -178,6 +213,45 @@ export default function HomeScreen() {
                     )}
                   </TouchableOpacity>
                 ))}
+
+                {/* Update section */}
+                <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 16 }]}>Update</Text>
+                <View style={styles.updateSection}>
+                  {updateStatus === 'ready'
+                    ? (
+                        <TouchableOpacity
+                          style={[styles.updateButton, { backgroundColor: '#22c55e' }]}
+                          onPress={handleApplyUpdate}
+                        >
+                          <Text style={styles.updateButtonText}>Restart to Apply</Text>
+                        </TouchableOpacity>
+                      )
+                    : (
+                        <TouchableOpacity
+                          style={[styles.updateButton, { backgroundColor: colors.primary, opacity: updateStatus === 'checking' || updateStatus === 'downloading' ? 0.6 : 1 }]}
+                          onPress={handleCheckUpdate}
+                          disabled={updateStatus === 'checking' || updateStatus === 'downloading'}
+                        >
+                          {(updateStatus === 'checking' || updateStatus === 'downloading')
+                            ? <ActivityIndicator color="#fff" size="small" />
+                            : <Text style={styles.updateButtonText}>Check for Updates</Text>}
+                        </TouchableOpacity>
+                      )}
+                  {updateMessage
+                    ? (
+                        <Text style={[styles.updateMessage, { color: updateStatus === 'error' ? '#ef4444' : colors.textSecondary }]}>
+                          {updateMessage}
+                        </Text>
+                      )
+                    : null}
+                  {Updates.updateId
+                    ? (
+                        <Text style={[styles.updateInfo, { color: colors.textSecondary }]}>
+                          {`OTA: ${Updates.updateId.slice(0, 8)}`}
+                        </Text>
+                      )
+                    : null}
+                </View>
               </View>
             </TouchableOpacity>
           </Modal>
@@ -185,15 +259,8 @@ export default function HomeScreen() {
           {/* Version info */}
           <View style={styles.versionContainer}>
             <Text style={[styles.versionText, { color: colors.textSecondary }]}>
-              {`v${Constants.expoConfig?.version ?? '?'} build ${Constants.expoConfig?.extra?.buildNumber ?? '?'} (${Constants.expoConfig?.extra?.commitHash ?? '?'}) [OTA test]`}
+              {`v${Constants.expoConfig?.version ?? '?'} build ${Constants.expoConfig?.extra?.buildNumber ?? '?'} (${Constants.expoConfig?.extra?.commitHash ?? '?'})`}
             </Text>
-            {Updates.updateId
-              ? (
-                  <Text style={[styles.versionText, { color: colors.textSecondary }]}>
-                    {`OTA: ${Updates.updateId.slice(0, 8)}`}
-                  </Text>
-                )
-              : null}
           </View>
 
           <ServerForm
@@ -298,6 +365,38 @@ const styles = StyleSheet.create({
   themeCheck: {
     fontSize: 18,
     fontWeight: '700',
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    paddingHorizontal: 12,
+    marginBottom: 8,
+  },
+  updateSection: {
+    paddingHorizontal: 12,
+    gap: 8,
+  },
+  updateButton: {
+    height: 44,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  updateButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  updateMessage: {
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  updateInfo: {
+    fontSize: 11,
+    textAlign: 'center',
+    opacity: 0.6,
   },
   versionContainer: {
     paddingHorizontal: 20,
