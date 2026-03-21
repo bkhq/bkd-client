@@ -4,7 +4,6 @@ import * as WebBrowser from 'expo-web-browser'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
-  AppState,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,8 +16,6 @@ import { useTheme } from '@/context/ThemeContext'
 
 // Only intercept OAuth providers that explicitly block WebView (popup/origin checks).
 // Other auth pages (like login.gid.io) should stay in WebView so cookies work naturally.
-const INACTIVE_BACKGROUND_RE = /inactive|background/
-
 const EXTERNAL_AUTH_PATTERNS = [
   'accounts.google.com',
   'appleid.apple.com',
@@ -51,18 +48,6 @@ export function WebViewScreen({ url, serverName, debugMode = false, onHomePress,
   }, [url])
   const insets = useSafeAreaInsets()
   const { colors } = useTheme()
-
-  // Reload WebView content when app returns from background
-  const appStateRef = useRef(AppState.currentState)
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (nextState) => {
-      if (INACTIVE_BACKGROUND_RE.test(appStateRef.current) && nextState === 'active') {
-        webViewRef.current?.reload()
-      }
-      appStateRef.current = nextState
-    })
-    return () => sub.remove()
-  }, [])
 
   const handleReload = useCallback(() => {
     setHasError(false)
