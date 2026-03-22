@@ -146,6 +146,12 @@ async function handleOTAManifest(
   const configObj = await env.RELEASES.get(`${updatePath}/expoConfig.json`);
   const expoConfig = configObj ? await configObj.json() : {};
 
+  // Read hashes.json (SHA-256 base64url hashes for asset verification)
+  const hashesObj = await env.RELEASES.get(`${updatePath}/hashes.json`);
+  const hashes: Record<string, string> = hashesObj
+    ? await hashesObj.json()
+    : {};
+
   // Get platform-specific file metadata
   const platformMeta = metadata.fileMetadata[platform as "ios" | "android"];
   if (!platformMeta) {
@@ -159,7 +165,7 @@ async function handleOTAManifest(
     const ext = `.${asset.ext}`;
     const filename = asset.path.split("/").pop() ?? "";
     return {
-      hash: filename,
+      hash: hashes[asset.path] ?? filename,
       key: filename,
       fileExtension: ext,
       contentType: EXT_TO_MIME[ext] ?? "application/octet-stream",
@@ -170,7 +176,7 @@ async function handleOTAManifest(
   // Build launch asset (JS bundle)
   const bundleName = platformMeta.bundle.split("/").pop() ?? "";
   const launchAsset = {
-    hash: bundleName,
+    hash: hashes[platformMeta.bundle] ?? bundleName,
     key: bundleName,
     fileExtension: ".bundle",
     contentType: "application/javascript",

@@ -67,9 +67,30 @@ jobs:
           echo "  Path: ${UPDATE_PATH}"
           echo "  Message: ${{ inputs.message }}"
 
+          # Generate SHA-256 base64url hashes for all assets
+          python3 << 'PYEOF'
+          import hashlib, base64, json, os
+
+          hashes = {}
+          for root, dirs, files in os.walk('dist'):
+              for f in files:
+                  filepath = os.path.join(root, f)
+                  relpath = os.path.relpath(filepath, 'dist')
+                  with open(filepath, 'rb') as fh:
+                      digest = hashlib.sha256(fh.read()).digest()
+                      hashes[relpath] = base64.urlsafe_b64encode(digest).rstrip(b'=').decode()
+          with open('dist/hashes.json', 'w') as f:
+              json.dump(hashes, f)
+          print(f"Generated hashes for {len(hashes)} files")
+          PYEOF
+
           # Upload metadata.json
           wrangler r2 object put "bkd-releases/${UPDATE_PATH}/metadata.json" \
             --file dist/metadata.json --remote
+
+          # Upload hashes.json
+          wrangler r2 object put "bkd-releases/${UPDATE_PATH}/hashes.json" \
+            --file dist/hashes.json --remote
 
           # Upload expoConfig.json if exists
           if [ -f dist/expoConfig.json ]; then
