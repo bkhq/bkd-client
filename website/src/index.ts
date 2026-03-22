@@ -200,38 +200,12 @@ async function handleOTAManifest(
   };
 
   const headers: Record<string, string> = {
-    "expo-protocol-version": protocolVersion,
+    "expo-protocol-version": "0",
     "expo-sfv-version": "0",
     "cache-control": "private, max-age=0",
   };
 
-  // Protocol v1 requires multipart/mixed response
-  if (protocolVersion === "1") {
-    const boundary = "ota-boundary";
-    const body = [
-      `--${boundary}`,
-      `Content-Disposition: form-data; name="manifest"`,
-      `Content-Type: application/json; charset=utf-8`,
-      ``,
-      JSON.stringify(manifest),
-      `--${boundary}`,
-      `Content-Disposition: form-data; name="extensions"`,
-      `Content-Type: application/json`,
-      ``,
-      JSON.stringify({ assetRequestHeaders: {} }),
-      `--${boundary}--`,
-      ``,
-    ].join("\r\n");
-
-    return new Response(body, {
-      headers: {
-        ...headers,
-        "content-type": `multipart/mixed; boundary=${boundary}`,
-      },
-    });
-  }
-
-  // Protocol v0 fallback: plain JSON
+  // Always return plain JSON (protocol v0) — simpler and more reliable
   return new Response(JSON.stringify(manifest), {
     headers: {
       ...headers,
